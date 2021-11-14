@@ -1,5 +1,6 @@
 %{
    #include<stdio.h>
+   #include<string.h>
    void yyerror(const char *msg);
    extern int currLine;
    int myError = 0;
@@ -9,12 +10,23 @@
    int numberToken;
    int productionID = 0;
 
+   char list_of_function_names[100][100];
+   int  count_names = 0;
+
 //#define YYDEBUG 1
 //yydebug=1;
 %}
 
+%union {
+  char *op_val;
+}
 
-%error-verbose
+%define parse.error verbose
+%type <op_val> var
+%type <op_val> ident
+%type <op_val> expression
+%type <op_val> multiplicative_expression
+%type <op_val> term
 %start prog_start
 %token BEGIN_PARAMS END_PARAMS BEGIN_LOCALS END_LOCALS BEGIN_BODY END_BODY
 %token FUNCTION RETURN MAIN
@@ -28,183 +40,230 @@
 %token SUB ADD MULT DIV MOD
 %token EQ NEQ LT GT LTE GTE
 %token SEMICOLON COLON COMMA L_PAREN R_PAREN ASSIGN
-%token NUMBER IDENT
+%token <op_val> NUMBER 
+%token <op_val> IDENT
 
 %%
 
 prog_start: 
 	functions
-		{printf("prog_start -> functions\n");};
+		{};
 
 functions: 
 	/* epsilon */
-		{printf("functions -> epsilon\n");}
+		{}
 	| function functions
-		{printf("functions -> function functions\n");};
+		{};
 
-function: 
-	FUNCTION ident SEMICOLON
+function: function_ident
+	SEMICOLON
 	BEGIN_PARAMS declarations END_PARAMS
 	BEGIN_LOCALS declarations END_LOCALS
-	BEGIN_BODY statements END_BODY
-		{printf("function -> FUNCTION IDENT SEMICOLON BEGIN_PARAMS declarations END_PARAMS BEGIN_LOCALS declarations END_LOCALS BEGIN_BODY statements END_BODY\n", identToken);};
+	BEGIN_BODY statements end_body 
+{
+
+};
+
+end_body: END_BODY {
+   printf("endfunc\n");
+}
+
+function_ident: FUNCTION ident {
+
+     char *token = identToken;
+     printf("func %s\n", token);
+     strcpy(list_of_function_names[count_names], token);
+     count_names++;
+}
+
+
 
 ident:
 	IDENT
-		{printf("ident -> IDENT %s\n", identToken);};
+		{ $$ = $1; };
 
 declarations: 
 	/* epsilon */
-		{printf("declarations -> epsilon\n");}
+		{}
 	| declaration SEMICOLON declarations
-		{printf("declarations -> declaration SEMICOLON declarations\n");};
+		{};
 
 declaration: 
-	identifiers COLON INTEGER
-		{printf("declaration -> identifiers COLON INTEGER\n");}
-	| identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER
-		{printf("declaration -> identifiers COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER\n");};
+	IDENT COLON INTEGER
+{
 
-identifiers: 
-	ident
-		{printf("identifiers -> ident\n");}
-	| ident COMMA identifiers
-		{printf("identifiers -> ident COMMA identifiers\n", identToken);};
+       char *token = $1;
+       printf(". %s\n", token);
 
+}
+	| IDENT COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER
+		{};
 
 statement: 
 	var ASSIGN expression
-		{printf("statement -> var ASSIGN expression\n");}
+{
+     
+
+  char *dest = $1;
+  char *src  = $3;
+  printf("= %s, %s\n", dest, src);
+
+}
 	| IF bool_exp THEN statements ENDIF
-		{printf("statement -> IF bool_exp THEN statements ENDIF\n");}
+		{}
 	| IF bool_exp THEN statements ELSE statements ENDIF
-		{printf("statement -> IF bool_exp THEN statements ELSE statements ENDIF\n");}
+		{}
 	| WHILE bool_exp BEGINLOOP statements ENDLOOP
-		{printf("statement -> WHILE bool_exp BEGINLOOP statements ENDLOOP\n");}
+		{}
 	| DO BEGINLOOP statements ENDLOOP WHILE bool_exp
-		{printf("statement -> DO BEGINLOOP statements ENDLOOP WHILE bool_exp\n");}
+		{}
 	| READ vars
-		{printf("statement -> READ vars\n");}
+		{}
 	| WRITE vars
-		{printf("statement -> WRITE vars\n");}
+		{}
 	| CONTINUE
-		{printf("statement -> CONTINUE\n");}
+		{}
 	| RETURN expression
-		{printf("statement -> RETURN expression\n");};
+		{};
 	
 statements: 
 	statement SEMICOLON/* epsilon */
-		{printf("statements -> epsilon\n");}
+		{}
 	| statement SEMICOLON statements
-		{printf("statements -> statement SEMICOLON statements\n");};
+		{};
 
 expression: 
 	multiplicative_expression
-		{printf("expression -> multiplicative_expression\n");}
+{$$ = $1; }
 	| multiplicative_expression ADD expression
-		{printf("expression -> multiplicative_expression ADD multiplicative_expression\n");}
+{     
+  char *src1 =  $1;
+  char *src2 =  $3;
+  char *dest = "_temp";
+  printf("+ %s, %s, %s\n", dest, src1, src2);
+  $$ = dest;
+}
 	| multiplicative_expression SUB expression
-		{printf("expression -> multiplicative_expression SUB multiplicative_expression\n");};
+{
+
+  char *src1 =  $1;
+  char *src2 =  $3;
+  char *dest = "_temp";
+  printf("- %s, %s, %s\n", dest, src1, src2);
+  $$ = dest;
+
+
+};
 
 multiplicative_expression: 
 	term
-		{printf("multiplicative_expression -> term\n");}
+		{ $$ = $1; }
 	| term MULT multiplicative_expression
-		{printf("multiplicative_expression -> term MULT multiplicative_expression\n");}
+		{ $$ = "SLDKFJDSLKJ"; }
 	| term DIV multiplicative_expression
-		{printf("multiplicative_expression -> term DIV multiplicative_expression\n");}
+		{ $$ = "SLDKFJDSLKJ"; }
 	| term MOD multiplicative_expression
-		{printf("multiplicative_expression -> term MOD multiplicative_expression\n");};
+		{ $$ = "SLDKFJDSLKJ"; }
+		;
 
 term: 
 	var
-		{printf("term -> var\n");}
+		{ $$ = $1; }
 	| SUB var
-		{printf("term -> SUB var\n");}
+		{ $$ = "SLDKFJDSLKJ"; }
 	| NUMBER
-		{printf("term -> NUMBER\n");}
+		{ $$ = $1; }
 	| SUB NUMBER
-		{printf("term -> SUB NUMBER\n");}
+		{ $$ = "SLDKFJDSLKJ"; }
 	| L_PAREN expression R_PAREN
-		{printf("term -> L_PAREN expression R_PAREN\n");}
+		{ $$ = "SLDKFJDSLKJ"; }
 	| SUB L_PAREN expression R_PAREN
-		{printf("term -> SUB L_PAREN expression R_PAREN\n");}
+		{ $$ = "SLDKFJDSLKJ"; }
 	| ident L_PAREN expressions R_PAREN
-		{printf("term -> ident L_PAREN expressions R_PAREN\n");};
+		{ $$ = "SLDKFJDSLKJ"; };
 
 expressions: 
 	/* epsilon */
-		{printf("expressions -> epsilon\n");}
+		{}
 	| comma_sep_expressions
-		{printf("expressions -> comma_sep_expressions\n");};
+		{};
 
 comma_sep_expressions: 
 	expression
-		{printf("comma_sep_expressions -> expression\n");}
+		{}
 	| expression COMMA comma_sep_expressions
-		{printf("comma_sep_expressions -> expression COMMA comma_sep_expressions\n");};
+		{};
 
 bool_exp:
 	relation_and_exp
-		{printf("bool_exp -> relation_and_exp\n");}
+		{}
 	| relation_and_exp OR bool_exp
-		{printf("bool_exp -> relation_and_exp OR relation_and_exp\n");};
+		{};
 
 relation_and_exp:
 	relation_exp
-		{printf("relation_and_exp -> relation_exp\n");}
+		{}
 	| relation_exp AND relation_and_exp
-		{printf("relation_and_exp -> relation_exp AND relation_exp\n");};
+		{};
 
 relation_exp:
 	expression comp expression
-		{printf("relation_exp -> expression comp expression\n");}
+		{}
 	| NOT expression comp expression
-		{printf("relation_exp -> NOT expression comp expression\n");}
+		{}
 	| TRUE
-		{printf("relation_exp -> TRUE\n");}
+		{}
 	| NOT TRUE
-		{printf("relation_exp -> NOT TRUE\n");}
+		{}
 	| FALSE
-		{printf("relation_exp -> FALSE\n");}
+		{}
 	| NOT FALSE
-		{printf("relation_exp -> NOT FALSE\n");}
+		{}
 	| L_PAREN bool_exp R_PAREN
-		{printf("relation_exp -> L_PAREN bool_exp R_PAREN\n");}
+		{}
 	| NOT L_PAREN bool_exp R_PAREN
-		{printf("relation_exp -> NOT L_PAREN bool_exp R_PAREN\n");};
+		{};
 
 comp:
 	EQ
-		{printf("comp -> EQ\n");}
+		{}
 	| NEQ
-		{printf("comp -> NEQ\n");}
+		{}
 	| LT
-		{printf("comp -> LT\n");}
+		{}
 	| GT
-		{printf("comp -> GT\n");}
+		{}
 	| LTE
-		{printf("comp -> LTE\n");}
+		{}
 	| GTE
-		{printf("comp -> GTE\n");};
+		{};
 
-var: 
-	ident
-		{printf("var -> ident\n");}
+var:  ident
+{ 
+    $$ = $1; 
+
+}
+
 	| ident L_SQUARE_BRACKET expression R_SQUARE_BRACKET
-		{printf("var -> ident L_SQUARE_BRACKET expression R_SQUARE_BRACKET\n");};
+		{ $$ = 0;  /*garbage */};
 vars:
 	var
-		{printf("vars -> var\n");}
+		{}
 	| var COMMA vars
-		{printf("vars -> var COMMA vars\n");};
+		{};
 	
 
 %%
 
 int main(int argc, char **argv)
 {
-   return yyparse();
+   yyparse();
+   /*int i =0;
+   for(i =0; i < count_names; i++ ) {
+     printf("%s\n", list_of_function_names[i]);
+   }*/
+
+   return 0;
 }
 
 void yyerror(const char *msg)
