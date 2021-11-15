@@ -34,7 +34,7 @@
   
   struct nonTerminal 
   {
-    char content[500];
+    char content[2000];
 	char cheese[10];
 	char theory[10];
 	char guitar[10];
@@ -49,8 +49,8 @@
 %define parse.error verbose
 
 
-%type <root> functions function 
-%type <root> declaration declarations statement statements function_ident
+%type <root> functions function statement statements function_ident
+%type <node> declaration declarations 
 
 %type <op_val> var
 %type <op_val> ident
@@ -105,8 +105,8 @@ function: function_ident
 		strcpy($$, "func ");
 		strcat($$,	$1);
 		strcat($$, "\n");
-		strcat($$,	$4);
-		strcat($$, $7);
+		strcat($$,	$4.content);
+		strcat($$, $7.content);
 		strcat($$, $10);
 		strcat($$, "endfunc ");
 	};
@@ -154,24 +154,29 @@ declarations:
 		{}
 	| declaration SEMICOLON declarations
 		{
-			strcpy($$, $1);
+			strcpy($$.content, $1.content);
 		  	//strcat($$, $2);
-		  	strcat($$, $3);
+		  	strcat($$.content, $3.content);
 		};
 
 declaration: 
 	IDENT COLON INTEGER
-	{
+		{	
 
     	//    char *token = $1;
     	//    printf(". %s\n", token);
-		strcpy($$, ".");
-		strcat($$, $1);
-		strcat($$, "\n");
 
-	}
+
+
+			strcpy($$.content, ".");
+			strcat($$.content, $1);
+			strcat($$.content, "\n");
+
+		}
 	| IDENT COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER
-		{};
+		{
+			//TODO: arrays
+		};
 
 statement: 
 	var ASSIGN expression

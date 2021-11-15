@@ -168,10 +168,10 @@ Nonterminals, with rules where they appear
     ident <op_val> (58)
         on left: 7
         on right: 6 36 59 60
-    declarations <root> (59)
+    declarations <node> (59)
         on left: 8 9
         on right: 4 9
-    declaration <root> (60)
+    declaration <node> (60)
         on left: 10 11
         on right: 9
     statement <root> (61)

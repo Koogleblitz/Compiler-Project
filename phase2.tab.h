@@ -114,7 +114,7 @@ union YYSTYPE
   
   struct nonTerminal 
   {
-    char content[500];
+    char content[2000];
 	char cheese[10];
 	char theory[10];
 	char guitar[10];
