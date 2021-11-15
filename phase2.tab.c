@@ -68,8 +68,11 @@
 /* First part of user prologue.  */
 #line 1 "phase2.y"
 
-   #include<stdio.h>
-   #include<string.h>
+   #include <stdio.h>
+   #include <string.h>
+   #include <stdlib.h>
+   //#include <string>
+
    void yyerror(const char *msg);
    extern int currLine;
    int myError = 0;
@@ -85,7 +88,7 @@
 //#define YYDEBUG 1
 //yydebug=1;
 
-#line 89 "phase2.tab.c"
+#line 92 "phase2.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -189,11 +192,27 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 20 "phase2.y"
+#line 29 "phase2.y"
 
   char *op_val;
+  char *str_val;
+  char *container;
+  char root[4000];
+  
+  struct nonTerminal 
+  {
+    char content[500];
+	char cheese[10];
+	char theory[10];
+	char guitar[10];
+  } node;
 
-#line 197 "phase2.tab.c"
+  struct terminal 
+  {
+    char name[10];
+  } leaf;
+
+#line 216 "phase2.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -571,15 +590,15 @@ static const yytype_int8 yytranslate[] =
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    49,    49,    54,    55,    58,    67,    71,    82,    87,
-      88,    92,    99,   103,   112,   114,   116,   118,   120,   122,
-     124,   126,   130,   132,   136,   138,   146,   159,   161,   163,
-     165,   170,   172,   174,   176,   178,   180,   182,   187,   188,
-     192,   194,   198,   200,   204,   206,   210,   212,   214,   216,
-     218,   220,   222,   224,   228,   230,   232,   234,   236,   238,
-     241,   247,   250,   252
+       0,    85,    85,    91,    97,    99,   115,   128,   145,   154,
+     155,   163,   173,   177,   190,   192,   194,   196,   198,   200,
+     202,   204,   208,   210,   218,   224,   240,   258,   264,   268,
+     272,   279,   284,   289,   294,   299,   304,   309,   317,   318,
+     322,   324,   328,   330,   334,   336,   340,   342,   344,   346,
+     348,   350,   352,   354,   358,   360,   362,   364,   366,   368,
+     371,   377,   383,   385
 };
 #endif
 
@@ -653,7 +672,7 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       3,     0,     0,     2,     3,     0,     8,     7,     1,     4,
+       4,     0,     0,     2,     4,     0,     8,     7,     1,     3,
        0,     9,     0,     0,     0,     0,     0,     9,    11,     0,
        9,    10,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,    20,     0,     0,    60,     0,     0,     0,
@@ -761,7 +780,7 @@ static const yytype_int8 yyr1[] =
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     1,     0,     2,    11,     1,     2,     1,     0,
+       0,     2,     1,     2,     0,    11,     1,     2,     1,     0,
        3,     3,     8,     3,     5,     7,     5,     6,     2,     2,
        1,     2,     2,     3,     1,     3,     3,     1,     3,     3,
        3,     1,     2,     1,     2,     3,     4,     4,     0,     1,
@@ -1463,419 +1482,508 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 50 "phase2.y"
-                {}
-#line 1469 "phase2.tab.c"
+#line 86 "phase2.y"
+                {
+			printf("%s",(yyvsp[0].root));
+		}
+#line 1490 "phase2.tab.c"
     break;
 
   case 3:
-#line 54 "phase2.y"
-                {}
-#line 1475 "phase2.tab.c"
+#line 92 "phase2.y"
+                {
+			strcpy((yyval.root), (yyvsp[-1].root));
+			strcat((yyval.root), "\n");
+			strcat((yyval.root), (yyvsp[0].root));
+		}
+#line 1500 "phase2.tab.c"
     break;
 
   case 4:
-#line 56 "phase2.y"
-                {}
-#line 1481 "phase2.tab.c"
+#line 97 "phase2.y"
+                        {strcpy((yyval.root), "");}
+#line 1506 "phase2.tab.c"
     break;
 
   case 5:
-#line 63 "phase2.y"
-{
-
-}
-#line 1489 "phase2.tab.c"
+#line 104 "phase2.y"
+        {
+		strcpy((yyval.root), "func ");
+		strcat((yyval.root),	(yyvsp[-10].root));
+		strcat((yyval.root), "\n");
+		strcat((yyval.root),	(yyvsp[-7].root));
+		strcat((yyval.root), (yyvsp[-4].root));
+		strcat((yyval.root), (yyvsp[-1].root));
+		strcat((yyval.root), "endfunc ");
+	}
+#line 1520 "phase2.tab.c"
     break;
 
   case 6:
-#line 67 "phase2.y"
-                   {
-   printf("endfunc\n");
-}
-#line 1497 "phase2.tab.c"
+#line 116 "phase2.y"
+        {
+   		//printf("endfunc\n");
+   		strcpy((yyval.container), "endfunc ");
+	}
+#line 1529 "phase2.tab.c"
     break;
 
   case 7:
-#line 71 "phase2.y"
-                               {
+#line 129 "phase2.y"
+        {
+     	// char *token = identToken;
+     	// printf("func %s\n", token);
+     	// strcpy(list_of_function_names[count_names], token);
+     	// count_names++;
 
-     char *token = identToken;
-     printf("func %s\n", token);
-     strcpy(list_of_function_names[count_names], token);
-     count_names++;
-}
-#line 1509 "phase2.tab.c"
+		 //strcpy($$, "func ");
+		 strcat((yyval.root), (yyvsp[0].op_val));
+
+		 strcpy(list_of_function_names[count_names], (yyvsp[0].op_val));
+		 count_names++;
+
+	}
+#line 1547 "phase2.tab.c"
     break;
 
   case 8:
-#line 83 "phase2.y"
-                { (yyval.op_val) = (yyvsp[0].op_val); }
-#line 1515 "phase2.tab.c"
-    break;
-
-  case 9:
-#line 87 "phase2.y"
-                {}
-#line 1521 "phase2.tab.c"
-    break;
-
-  case 10:
-#line 89 "phase2.y"
-                {}
-#line 1527 "phase2.tab.c"
-    break;
-
-  case 11:
-#line 93 "phase2.y"
-{
-
-       char *token = (yyvsp[-2].op_val);
-       printf(". %s\n", token);
-
-}
-#line 1538 "phase2.tab.c"
-    break;
-
-  case 12:
-#line 100 "phase2.y"
-                {}
-#line 1544 "phase2.tab.c"
-    break;
-
-  case 13:
-#line 104 "phase2.y"
-{
-     
-
-  char *dest = (yyvsp[-2].op_val);
-  char *src  = (yyvsp[0].op_val);
-  printf("= %s, %s\n", dest, src);
-
-}
+#line 146 "phase2.y"
+                { 
+			//TODO: distinguish between an array and a normal ident
+			//$$ = $1; 
+			strcpy((yyval.op_val), (yyvsp[0].op_val));
+		}
 #line 1557 "phase2.tab.c"
     break;
 
-  case 14:
-#line 113 "phase2.y"
+  case 9:
+#line 154 "phase2.y"
                 {}
 #line 1563 "phase2.tab.c"
     break;
 
-  case 15:
-#line 115 "phase2.y"
-                {}
-#line 1569 "phase2.tab.c"
+  case 10:
+#line 156 "phase2.y"
+                {
+			strcpy((yyval.root), (yyvsp[-2].root));
+		  	//strcat($$, $2);
+		  	strcat((yyval.root), (yyvsp[0].root));
+		}
+#line 1573 "phase2.tab.c"
     break;
 
-  case 16:
-#line 117 "phase2.y"
-                {}
-#line 1575 "phase2.tab.c"
-    break;
+  case 11:
+#line 164 "phase2.y"
+        {
 
-  case 17:
-#line 119 "phase2.y"
-                {}
-#line 1581 "phase2.tab.c"
-    break;
+    	//    char *token = $1;
+    	//    printf(". %s\n", token);
+		strcpy((yyval.root), ".");
+		strcat((yyval.root), (yyvsp[-2].op_val));
+		strcat((yyval.root), "\n");
 
-  case 18:
-#line 121 "phase2.y"
-                {}
+	}
 #line 1587 "phase2.tab.c"
     break;
 
-  case 19:
-#line 123 "phase2.y"
+  case 12:
+#line 174 "phase2.y"
                 {}
 #line 1593 "phase2.tab.c"
     break;
 
-  case 20:
-#line 125 "phase2.y"
+  case 13:
+#line 178 "phase2.y"
+        {
+  		// char *dest = $1;
+  		// char *src  = $3;
+  		// printf("= %s, %s\n", dest, src);
+
+		  strcpy((yyval.root), "= ");
+		  strcat((yyval.root), (yyvsp[-2].op_val));
+		  strcat((yyval.root), ", ");
+		  strcat((yyval.root), (yyvsp[0].op_val));
+		  strcat((yyval.root), "\n");
+		  
+	}
+#line 1610 "phase2.tab.c"
+    break;
+
+  case 14:
+#line 191 "phase2.y"
                 {}
-#line 1599 "phase2.tab.c"
+#line 1616 "phase2.tab.c"
+    break;
+
+  case 15:
+#line 193 "phase2.y"
+                {}
+#line 1622 "phase2.tab.c"
+    break;
+
+  case 16:
+#line 195 "phase2.y"
+                {}
+#line 1628 "phase2.tab.c"
+    break;
+
+  case 17:
+#line 197 "phase2.y"
+                {}
+#line 1634 "phase2.tab.c"
+    break;
+
+  case 18:
+#line 199 "phase2.y"
+                {}
+#line 1640 "phase2.tab.c"
+    break;
+
+  case 19:
+#line 201 "phase2.y"
+                {}
+#line 1646 "phase2.tab.c"
+    break;
+
+  case 20:
+#line 203 "phase2.y"
+                {}
+#line 1652 "phase2.tab.c"
     break;
 
   case 21:
-#line 127 "phase2.y"
+#line 205 "phase2.y"
                 {}
-#line 1605 "phase2.tab.c"
+#line 1658 "phase2.tab.c"
     break;
 
   case 22:
-#line 131 "phase2.y"
+#line 209 "phase2.y"
                 {}
-#line 1611 "phase2.tab.c"
+#line 1664 "phase2.tab.c"
     break;
 
   case 23:
-#line 133 "phase2.y"
-                {}
-#line 1617 "phase2.tab.c"
-    break;
-
-  case 24:
-#line 137 "phase2.y"
-{(yyval.op_val) = (yyvsp[0].op_val); }
-#line 1623 "phase2.tab.c"
-    break;
-
-  case 25:
-#line 139 "phase2.y"
-{     
-  char *src1 =  (yyvsp[-2].op_val);
-  char *src2 =  (yyvsp[0].op_val);
-  char *dest = "_temp";
-  printf("+ %s, %s, %s\n", dest, src1, src2);
-  (yyval.op_val) = dest;
-}
-#line 1635 "phase2.tab.c"
-    break;
-
-  case 26:
-#line 147 "phase2.y"
-{
-
-  char *src1 =  (yyvsp[-2].op_val);
-  char *src2 =  (yyvsp[0].op_val);
-  char *dest = "_temp";
-  printf("- %s, %s, %s\n", dest, src1, src2);
-  (yyval.op_val) = dest;
-
-
-}
-#line 1650 "phase2.tab.c"
-    break;
-
-  case 27:
-#line 160 "phase2.y"
-                { (yyval.op_val) = (yyvsp[0].op_val); }
-#line 1656 "phase2.tab.c"
-    break;
-
-  case 28:
-#line 162 "phase2.y"
-                { (yyval.op_val) = "SLDKFJDSLKJ"; }
-#line 1662 "phase2.tab.c"
-    break;
-
-  case 29:
-#line 164 "phase2.y"
-                { (yyval.op_val) = "SLDKFJDSLKJ"; }
-#line 1668 "phase2.tab.c"
-    break;
-
-  case 30:
-#line 166 "phase2.y"
-                { (yyval.op_val) = "SLDKFJDSLKJ"; }
+#line 211 "phase2.y"
+                {
+			strcpy((yyval.root), (yyvsp[-2].root));
+		  	//strcat($$, $2);
+		  	strcat((yyval.root), (yyvsp[0].root));
+		}
 #line 1674 "phase2.tab.c"
     break;
 
-  case 31:
-#line 171 "phase2.y"
-                { (yyval.op_val) = (yyvsp[0].op_val); }
-#line 1680 "phase2.tab.c"
+  case 24:
+#line 219 "phase2.y"
+        {
+		//**TODO: create a struct assign $$ as an object with different fields
+		//$$ = $1; 
+		strcpy((yyval.op_val), (yyvsp[0].op_val));
+	}
+#line 1684 "phase2.tab.c"
     break;
 
-  case 32:
-#line 173 "phase2.y"
-                { (yyval.op_val) = "SLDKFJDSLKJ"; }
-#line 1686 "phase2.tab.c"
-    break;
+  case 25:
+#line 225 "phase2.y"
+        {     
+  		// char *src1 =  $1;
+  		// char *src2 =  $3;
+  		// char *dest = "_temp";
+  		// printf("+ %s, %s, %s\n", dest, src1, src2);
+  		// $$ = dest;
 
-  case 33:
-#line 175 "phase2.y"
-                { (yyval.op_val) = (yyvsp[0].op_val); }
-#line 1692 "phase2.tab.c"
-    break;
-
-  case 34:
-#line 177 "phase2.y"
-                { (yyval.op_val) = "SLDKFJDSLKJ"; }
-#line 1698 "phase2.tab.c"
-    break;
-
-  case 35:
-#line 179 "phase2.y"
-                { (yyval.op_val) = "SLDKFJDSLKJ"; }
+		strcpy((yyval.op_val), "+_temp ");
+		//strcat($$, "_temp ");
+		strcat((yyval.op_val), (yyvsp[-2].op_val));
+		strcat((yyval.op_val), ", ");
+		strcat((yyval.op_val), (yyvsp[0].op_val));
+		strcat((yyval.op_val), "\n");
+		
+	}
 #line 1704 "phase2.tab.c"
     break;
 
-  case 36:
-#line 181 "phase2.y"
-                { (yyval.op_val) = "SLDKFJDSLKJ"; }
-#line 1710 "phase2.tab.c"
+  case 26:
+#line 241 "phase2.y"
+        {
+  		// char *src1 =  $1;
+  		// char *src2 =  $3;
+  		// char *dest = "_temp";
+  		// printf("- %s, %s, %s\n", dest, src1, src2);
+  		// $$ = dest;
+
+		strcpy((yyval.op_val), "-_temp ");
+		//strcat($$, "_temp ");
+		strcat((yyval.op_val), (yyvsp[-2].op_val));
+		strcat((yyval.op_val), ", ");
+		strcat((yyval.op_val), (yyvsp[0].op_val));
+		strcat((yyval.op_val), "\n");
+	
+	}
+#line 1724 "phase2.tab.c"
     break;
 
-  case 37:
-#line 183 "phase2.y"
-                { (yyval.op_val) = "SLDKFJDSLKJ"; }
-#line 1716 "phase2.tab.c"
-    break;
+  case 27:
+#line 259 "phase2.y"
+                { 
+			//$$ = $1;
+			strcpy((yyval.op_val), (yyvsp[0].op_val));
 
-  case 38:
-#line 187 "phase2.y"
-                {}
-#line 1722 "phase2.tab.c"
-    break;
-
-  case 39:
-#line 189 "phase2.y"
-                {}
-#line 1728 "phase2.tab.c"
-    break;
-
-  case 40:
-#line 193 "phase2.y"
-                {}
+		}
 #line 1734 "phase2.tab.c"
     break;
 
-  case 41:
-#line 195 "phase2.y"
-                {}
-#line 1740 "phase2.tab.c"
+  case 28:
+#line 265 "phase2.y"
+                {
+			strcpy((yyval.op_val), "filler:"); 
+		}
+#line 1742 "phase2.tab.c"
     break;
 
-  case 42:
-#line 199 "phase2.y"
-                {}
-#line 1746 "phase2.tab.c"
+  case 29:
+#line 269 "phase2.y"
+                {
+			strcpy((yyval.op_val), "filler:"); 
+		}
+#line 1750 "phase2.tab.c"
     break;
 
-  case 43:
-#line 201 "phase2.y"
-                {}
-#line 1752 "phase2.tab.c"
-    break;
-
-  case 44:
-#line 205 "phase2.y"
-                {}
+  case 30:
+#line 273 "phase2.y"
+                {
+			strcpy((yyval.op_val), "filler:"); 
+		}
 #line 1758 "phase2.tab.c"
     break;
 
-  case 45:
-#line 207 "phase2.y"
-                {}
-#line 1764 "phase2.tab.c"
+  case 31:
+#line 280 "phase2.y"
+                { 
+			//$$ = $1;
+			strcpy((yyval.op_val), (yyvsp[0].op_val)); 
+		}
+#line 1767 "phase2.tab.c"
     break;
 
-  case 46:
-#line 211 "phase2.y"
-                {}
-#line 1770 "phase2.tab.c"
-    break;
-
-  case 47:
-#line 213 "phase2.y"
-                {}
+  case 32:
+#line 285 "phase2.y"
+                { 
+			//$$ = "SLDKFJDSLKJ";
+			strcpy((yyval.op_val), "filler "); 
+		}
 #line 1776 "phase2.tab.c"
     break;
 
-  case 48:
-#line 215 "phase2.y"
-                {}
-#line 1782 "phase2.tab.c"
+  case 33:
+#line 290 "phase2.y"
+                { 
+			//$$ = $1;
+			strcpy((yyval.op_val), (yyvsp[0].op_val)); 
+		}
+#line 1785 "phase2.tab.c"
     break;
 
-  case 49:
-#line 217 "phase2.y"
-                {}
-#line 1788 "phase2.tab.c"
-    break;
-
-  case 50:
-#line 219 "phase2.y"
-                {}
+  case 34:
+#line 295 "phase2.y"
+                { 
+			//$$ = "SLDKFJDSLKJ";
+			strcpy((yyval.op_val), "filler "); 
+		}
 #line 1794 "phase2.tab.c"
     break;
 
-  case 51:
-#line 221 "phase2.y"
-                {}
-#line 1800 "phase2.tab.c"
+  case 35:
+#line 300 "phase2.y"
+                { 
+			//$$ = "SLDKFJDSLKJ";
+			strcpy((yyval.op_val), "filler "); 
+		}
+#line 1803 "phase2.tab.c"
     break;
 
-  case 52:
-#line 223 "phase2.y"
-                {}
-#line 1806 "phase2.tab.c"
-    break;
-
-  case 53:
-#line 225 "phase2.y"
-                {}
+  case 36:
+#line 305 "phase2.y"
+                { 
+			//$$ = "SLDKFJDSLKJ";
+			strcpy((yyval.op_val), "filler "); 
+		}
 #line 1812 "phase2.tab.c"
     break;
 
-  case 54:
-#line 229 "phase2.y"
-                {}
-#line 1818 "phase2.tab.c"
+  case 37:
+#line 310 "phase2.y"
+                { 
+			//$$ = "SLDKFJDSLKJ";
+			strcpy((yyval.op_val), "filler "); 
+		}
+#line 1821 "phase2.tab.c"
     break;
 
-  case 55:
-#line 231 "phase2.y"
+  case 38:
+#line 317 "phase2.y"
                 {}
-#line 1824 "phase2.tab.c"
+#line 1827 "phase2.tab.c"
     break;
 
-  case 56:
-#line 233 "phase2.y"
+  case 39:
+#line 319 "phase2.y"
                 {}
-#line 1830 "phase2.tab.c"
+#line 1833 "phase2.tab.c"
     break;
 
-  case 57:
-#line 235 "phase2.y"
+  case 40:
+#line 323 "phase2.y"
                 {}
-#line 1836 "phase2.tab.c"
+#line 1839 "phase2.tab.c"
     break;
 
-  case 58:
-#line 237 "phase2.y"
+  case 41:
+#line 325 "phase2.y"
                 {}
-#line 1842 "phase2.tab.c"
+#line 1845 "phase2.tab.c"
     break;
 
-  case 59:
-#line 239 "phase2.y"
+  case 42:
+#line 329 "phase2.y"
                 {}
-#line 1848 "phase2.tab.c"
+#line 1851 "phase2.tab.c"
     break;
 
-  case 60:
-#line 242 "phase2.y"
-{ 
-    (yyval.op_val) = (yyvsp[0].op_val); 
-
-}
+  case 43:
+#line 331 "phase2.y"
+                {}
 #line 1857 "phase2.tab.c"
     break;
 
-  case 61:
-#line 248 "phase2.y"
-                { (yyval.op_val) = 0;  /*garbage */}
+  case 44:
+#line 335 "phase2.y"
+                {}
 #line 1863 "phase2.tab.c"
     break;
 
-  case 62:
-#line 251 "phase2.y"
+  case 45:
+#line 337 "phase2.y"
                 {}
 #line 1869 "phase2.tab.c"
     break;
 
-  case 63:
-#line 253 "phase2.y"
+  case 46:
+#line 341 "phase2.y"
                 {}
 #line 1875 "phase2.tab.c"
     break;
 
+  case 47:
+#line 343 "phase2.y"
+                {}
+#line 1881 "phase2.tab.c"
+    break;
 
-#line 1879 "phase2.tab.c"
+  case 48:
+#line 345 "phase2.y"
+                {}
+#line 1887 "phase2.tab.c"
+    break;
+
+  case 49:
+#line 347 "phase2.y"
+                {}
+#line 1893 "phase2.tab.c"
+    break;
+
+  case 50:
+#line 349 "phase2.y"
+                {}
+#line 1899 "phase2.tab.c"
+    break;
+
+  case 51:
+#line 351 "phase2.y"
+                {}
+#line 1905 "phase2.tab.c"
+    break;
+
+  case 52:
+#line 353 "phase2.y"
+                {}
+#line 1911 "phase2.tab.c"
+    break;
+
+  case 53:
+#line 355 "phase2.y"
+                {}
+#line 1917 "phase2.tab.c"
+    break;
+
+  case 54:
+#line 359 "phase2.y"
+                {}
+#line 1923 "phase2.tab.c"
+    break;
+
+  case 55:
+#line 361 "phase2.y"
+                {}
+#line 1929 "phase2.tab.c"
+    break;
+
+  case 56:
+#line 363 "phase2.y"
+                {}
+#line 1935 "phase2.tab.c"
+    break;
+
+  case 57:
+#line 365 "phase2.y"
+                {}
+#line 1941 "phase2.tab.c"
+    break;
+
+  case 58:
+#line 367 "phase2.y"
+                {}
+#line 1947 "phase2.tab.c"
+    break;
+
+  case 59:
+#line 369 "phase2.y"
+                {}
+#line 1953 "phase2.tab.c"
+    break;
+
+  case 60:
+#line 372 "phase2.y"
+{ 
+    (yyval.op_val) = (yyvsp[0].op_val); 
+
+}
+#line 1962 "phase2.tab.c"
+    break;
+
+  case 61:
+#line 378 "phase2.y"
+                { 
+			//$$ = 0;  /*garbage */
+			strcpy((yyval.op_val), "garbage ");
+		}
+#line 1971 "phase2.tab.c"
+    break;
+
+  case 62:
+#line 384 "phase2.y"
+                {}
+#line 1977 "phase2.tab.c"
+    break;
+
+  case 63:
+#line 386 "phase2.y"
+                {}
+#line 1983 "phase2.tab.c"
+    break;
+
+
+#line 1987 "phase2.tab.c"
 
       default: break;
     }
@@ -2107,7 +2215,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 256 "phase2.y"
+#line 389 "phase2.y"
 
 
 int main(int argc, char **argv)

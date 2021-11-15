@@ -105,11 +105,27 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 20 "phase2.y"
+#line 29 "phase2.y"
 
   char *op_val;
+  char *str_val;
+  char *container;
+  char root[4000];
+  
+  struct nonTerminal 
+  {
+    char content[500];
+	char cheese[10];
+	char theory[10];
+	char guitar[10];
+  } node;
 
-#line 113 "phase2.tab.h"
+  struct terminal 
+  {
+    char name[10];
+  } leaf;
+
+#line 129 "phase2.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

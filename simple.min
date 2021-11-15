@@ -6,11 +6,14 @@ beginlocals
   a : integer;
   b : integer;
   c : integer;
+  d : integer;
+
 endlocals
 
 beginbody	
   a := 100;
   b := 50;
   c := a + b;
+  d := c - a;
 endbody
 
