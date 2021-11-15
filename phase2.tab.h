@@ -110,22 +110,24 @@ union YYSTYPE
   char *op_val;
   char *str_val;
   char *container;
+
   char root[4000];
   
   struct nonTerminal 
   {
     char content[2000];
-	char cheese[10];
-	char theory[10];
-	char guitar[10];
+	char name[10];
+	char type[10];
   } node;
 
   struct terminal 
   {
-    char name[10];
+    char name[30];
+	char content[200];
+	char type[10];
   } leaf;
 
-#line 129 "phase2.tab.h"
+#line 131 "phase2.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

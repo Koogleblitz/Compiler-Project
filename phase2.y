@@ -30,19 +30,21 @@
   char *op_val;
   char *str_val;
   char *container;
+
   char root[4000];
   
   struct nonTerminal 
   {
     char content[2000];
-	char cheese[10];
-	char theory[10];
-	char guitar[10];
+	char name[10];
+	char type[10];
   } node;
 
   struct terminal 
   {
-    char name[10];
+    char name[30];
+	char content[200];
+	char type[10];
   } leaf;
 }
 
@@ -50,13 +52,14 @@
 
 
 %type <root> functions function function_ident
-%type <node> declaration declarations statement statements
+%type <node> declaration declarations statement statements var term ident expressions comma_sep_expressions expression multiplicative_expression vars idents
+//%type <leaf> ident 
 
-%type <op_val> var
-%type <op_val> ident
-%type <op_val> expression
-%type <op_val> multiplicative_expression
-%type <op_val> term
+//%type <op_val> var
+//%type <op_val> ident
+//%type <op_val> expression
+//%type <op_val> multiplicative_expression
+//%type <op_val> term
 
 
 
@@ -119,12 +122,6 @@ end_body:
 	}
 
 
-
-
-
-
-
-
 function_ident: FUNCTION ident 
 	{
      	// char *token = identToken;
@@ -133,9 +130,9 @@ function_ident: FUNCTION ident
      	// count_names++;
 
 		 //strcpy($$, "func ");
-		 strcat($$, $2);
+		 strcat($$, $2.content);
 
-		 strcpy(list_of_function_names[count_names], $2);
+		 strcpy(list_of_function_names[count_names], $2.content);
 		 count_names++;
 
 	}
@@ -146,8 +143,21 @@ ident:
 		{ 
 			//TODO: distinguish between an array and a normal ident
 			//$$ = $1; 
-			strcpy($$, $1);
+			strcpy($$.content, $1);
 		};
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 declarations: 
 	/* epsilon */
@@ -173,10 +183,55 @@ declaration:
 			strcat($$.content, "\n");
 
 		}
+	| idents COLON INTEGER
+		{
+		  	strcat($$.content, $1.content);
+		}
+	| IDENT COMMA IDENT COLON INTEGER
+		{
+			strcpy($$.content, ".");
+			strcat($$.content, $1);
+			strcat($$.content, "\n");
+
+			strcpy($$.content, ".");
+			strcat($$.content, $3);
+			strcat($$.content, "\n");
+		}
+	| IDENT COMMA IDENT COMMA IDENT COLON INTEGER
+		{
+			strcpy($$.content, ".");
+			strcat($$.content, $1);
+			strcat($$.content, "\n");
+
+			strcpy($$.content, ".");
+			strcat($$.content, $3);
+			strcat($$.content, "\n");
+
+			strcpy($$.content, ".");
+			strcat($$.content, $5);
+			strcat($$.content, "\n");
+		}
 	| IDENT COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER
 		{
 			//TODO: arrays
+			printf("horray! we found an array!   ");
 		};
+
+
+idents: 
+	/*epsilon*/
+		{
+			// strcpy($$.content, $1);
+			// strcpy($$.name, $1)
+		}
+	| ident COMMA idents
+		{
+			strcpy($$.content, ".");
+			strcat($$.content, $1.content);
+			strcat($$.content, "\n");
+			strcat($$.content, $3.content);
+		};
+
 
 statement: 
 	var ASSIGN expression
@@ -185,11 +240,10 @@ statement:
   		// char *src  = $3;
   		// printf("= %s, %s\n", dest, src);
 
-		//TODO: make statement and statements of type "node" just like declerations, so that it can be polymorphic. 
 		  strcpy($$.content, "= ");
-		  strcat($$.content, $1);
+		  strcat($$.content, $1.content);
 		  strcat($$.content, ", ");
-		  strcat($$.content, $3);
+		  strcat($$.content, $3.content);
 		  strcat($$.content, "\n");
 		  
 	}
@@ -212,7 +266,9 @@ statement:
 	
 statements: 
 	statement SEMICOLON/* epsilon */
-		{}
+		{
+			strcpy($$.content, $1.content);
+		}
 	| statement SEMICOLON statements
 		{
 			strcpy($$.content, $1.content);
@@ -225,38 +281,60 @@ expression:
 	{
 		//**TODO: create a struct assign $$ as an object with different fields
 		//$$ = $1; 
-		strcpy($$, $1);
+		strcpy($$.content, $1.content);
 	}
 	| multiplicative_expression ADD expression
 	{     
   		// char *src1 =  $1;
   		// char *src2 =  $3;
-  		// char *dest = "_temp";
+  		// char *dest = "__temp__";
   		// printf("+ %s, %s, %s\n", dest, src1, src2);
   		// $$ = dest;
 
-		strcpy($$, "+_temp ");
-		//strcat($$, "_temp ");
-		strcat($$, $1);
-		strcat($$, ", ");
-		strcat($$, $3);
-		strcat($$, "\n");
+		// strcpy($$, "+__temp__ ");
+		// //strcat($$, "__temp__ ");
+		// strcat($$, $1);
+		// strcat($$, ", ");
+		// strcat($$, $3);
+		// strcat($$, "\n");
+
+		strcpy($$.content, $3.content);
+
+		strcat($$.content, $1.content);
+		strcat($$.content, "\n.");
+		strcat($$.content, "__temp__\n");
+		strcat($$.content, "+__temp__, ");
+		strcat($$.content, $1.content);
+		strcat($$.content, ", ");
+		strcat($$.content, $3.content);
+
 		
 	}
 	| multiplicative_expression SUB expression
 	{
   		// char *src1 =  $1;
   		// char *src2 =  $3;
-  		// char *dest = "_temp";
+  		// char *dest = "__temp__";
   		// printf("- %s, %s, %s\n", dest, src1, src2);
   		// $$ = dest;
 
-		strcpy($$, "-_temp ");
-		//strcat($$, "_temp ");
-		strcat($$, $1);
-		strcat($$, ", ");
-		strcat($$, $3);
-		strcat($$, "\n");
+		// strcpy($$, "-__temp__ ");
+		// //strcat($$, "__temp__ ");
+		// strcat($$, $1);
+		// strcat($$, ", ");
+		// strcat($$, $3);
+		// strcat($$, "\n");
+
+		strcpy($$.content, $3.content);
+
+		strcat($$.content, $1.content);
+		strcat($$.content, "\n.");
+		strcat($$.content, "__temp__\n");
+		strcat($$.content, "+__temp__, ");
+		strcat($$.content, $1.content);
+		strcat($$.content, ", ");
+		strcat($$.content, $3.content);
+
 	
 	};
 
@@ -264,71 +342,117 @@ multiplicative_expression:
 	term
 		{ 
 			//$$ = $1;
-			strcpy($$, $1);
+			strcpy($$.content, $1.content);
 
 		}
 	| term MULT multiplicative_expression
 		{
-			strcpy($$, "filler:"); 
+			strcpy($$.content, $3.content);
+			strcat($$.content, $1.content); 
+			strcat($$.content, "\n.__temp__\n");
+			strcat($$.content, "*__temp__, ");
+			strcat($$.content, $1.name);
 		}
 	| term DIV multiplicative_expression
 		{
-			strcpy($$, "filler:"); 
+			strcpy($$.content, $3.content);
+			strcat($$.content, $1.content); 
+			strcat($$.content, "\n.__temp__\n");
+			strcat($$.content, "/__temp__, ");
+			strcat($$.content, $1.name);
 		}
 	| term MOD multiplicative_expression
 		{
-			strcpy($$, "filler:"); 
-		}
-		;
+			strcpy($$.content, $3.content);
+			strcat($$.content, $1.content); 
+			strcat($$.content, "\n.__temp__\n");
+			strcat($$.content, "%_tmp, ");
+			strcat($$.content, $1.name);
+		};
 
 term: 
 	var
 		{ 
+			strcpy($$.content, $1.content);			
+			strcpy($$.name, $1.name);
+			strcpy($$.type, $1.type);
+
 			//$$ = $1;
-			strcpy($$, $1); 
+			if($1.type == "ident"){
+				strcpy($$.content, ". __temp__\n"); 
+				strcat($$.content, "=__temp__, ");
+				strcat($$.content, $1.content);			
+			}
+			else if($1.type == "array"){
+				strcpy($$.content, "=[], ");
+				strcat($$.content, $1.name);
+							
+			}
+
 		}
 	| SUB var
 		{ 
 			//$$ = "SLDKFJDSLKJ";
-			strcpy($$, "filler "); 
+			if($2.type == "ident"){
+				strcpy($$.content, ". __temp__\n"); 
+				strcat($$.content, "=__temp__, ");
+				strcat($$.content, $2.content);			
+			}
+			else if($2.type == "array"){
+				strcpy($$.content, "=[], ");
+				strcat($$.content, $2.name);
+							
+			}
 		}
 	| NUMBER
 		{ 
 			//$$ = $1;
-			strcpy($$, $1); 
+			strcpy($$.content, $1);
+			strcpy($$.type, $1);
 		}
 	| SUB NUMBER
 		{ 
-			//$$ = "SLDKFJDSLKJ";
-			strcpy($$, "filler "); 
+			strcpy($$.content, "-");
+			strcat($$.content, $2);
+			strcpy($$.type, $2); 
 		}
 	| L_PAREN expression R_PAREN
 		{ 
 			//$$ = "SLDKFJDSLKJ";
-			strcpy($$, "filler "); 
+			strcpy($$.content, $2.name);
+
 		}
 	| SUB L_PAREN expression R_PAREN
 		{ 
 			//$$ = "SLDKFJDSLKJ";
-			strcpy($$, "filler "); 
+			strcpy($$.content, $3.name); 
 		}
 	| ident L_PAREN expressions R_PAREN
 		{ 
 			//$$ = "SLDKFJDSLKJ";
-			strcpy($$, "filler "); 
+			strcpy($$.content, $3.name); 
 		};
 
 expressions: 
 	/* epsilon */
-		{}
+		{
+			strcpy($$.content, ""); 
+		}
 	| comma_sep_expressions
 		{};
 
 comma_sep_expressions: 
 	expression
-		{}
+		{
+			strcpy($$.content, $1.content);
+		}
 	| expression COMMA comma_sep_expressions
-		{};
+		{
+			strcpy($$.content, $1.content);
+			strcat($$.content, "\n");
+			strcat($$.content, $3.content);
+		};
+	
 
 bool_exp:
 	relation_and_exp
@@ -375,21 +499,41 @@ comp:
 		{};
 
 var:  ident
-{ 
-    $$ = $1; 
+	{	 
+    	strcpy($$.content, $1.content);
+		strcpy($$.type, "ident");
 
-}
+	}
 
-	| ident L_SQUARE_BRACKET expression R_SQUARE_BRACKET
-		{ 
-			//$$ = 0;  /*garbage */
-			strcpy($$, "garbage ");
-		};
+| ident L_SQUARE_BRACKET expression R_SQUARE_BRACKET
+	{ 
+		//$$ = 0;  /*garbage */
+
+		//*TODO: this is the array
+		
+
+		strcpy($$.content, ".[] ");
+		strcat($$.content, $1.name);
+		strcat($$.content, ", ");
+		strcat($$.content, $3.content);
+
+		strcpy($$.name, $1.name);
+		strcpy($$.type, "array");
+	};
 vars:
 	var
-		{}
+		{
+			strcpy($$.content, $1.content);
+			strcpy($$.type, $1.type);
+		}
 	| var COMMA vars
-		{};
+		{
+			//TODO: output error if var and vars are of different type
+			//TODO: find the "leaves" and give them "signitures", a thing that is composed of the leaf will inherit the signature as its first token
+			strcat($$.content, $1.content);
+			strcat($$.content, ", ");
+			strcat($$.content, $3.content);
+		};
 	
 
 %%

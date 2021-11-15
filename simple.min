@@ -6,14 +6,25 @@ beginlocals
   a : integer;
   b : integer;
   c : integer;
-  d : integer;
-
+  n : integer;
+  i, j, k: integer;
 endlocals
 
 beginbody	
   a := 100;
   b := 50;
   c := a + b;
-  d := c - a;
+
+  
+
+
+  t[i] := i * 2;
+
+  k := t[i];
+  t[i] := t[j];
+  t[j] := k;
+
+  k := 0;
+  n := 20;
 endbody
 
