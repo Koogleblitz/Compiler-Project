@@ -49,8 +49,8 @@
 %define parse.error verbose
 
 
-%type <root> functions function statement statements function_ident
-%type <node> declaration declarations 
+%type <root> functions function function_ident
+%type <node> declaration declarations statement statements
 
 %type <op_val> var
 %type <op_val> ident
@@ -107,7 +107,7 @@ function: function_ident
 		strcat($$, "\n");
 		strcat($$,	$4.content);
 		strcat($$, $7.content);
-		strcat($$, $10);
+		strcat($$, $10.content);
 		strcat($$, "endfunc ");
 	};
 
@@ -185,11 +185,12 @@ statement:
   		// char *src  = $3;
   		// printf("= %s, %s\n", dest, src);
 
-		  strcpy($$, "= ");
-		  strcat($$, $1);
-		  strcat($$, ", ");
-		  strcat($$, $3);
-		  strcat($$, "\n");
+		//TODO: make statement and statements of type "node" just like declerations, so that it can be polymorphic. 
+		  strcpy($$.content, "= ");
+		  strcat($$.content, $1);
+		  strcat($$.content, ", ");
+		  strcat($$.content, $3);
+		  strcat($$.content, "\n");
 		  
 	}
 	| IF bool_exp THEN statements ENDIF
@@ -214,9 +215,9 @@ statements:
 		{}
 	| statement SEMICOLON statements
 		{
-			strcpy($$, $1);
+			strcpy($$.content, $1.content);
 		  	//strcat($$, $2);
-		  	strcat($$, $3);
+		  	strcat($$.content, $3.content);
 		};
 
 expression: 

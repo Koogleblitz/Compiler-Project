@@ -174,10 +174,10 @@ Nonterminals, with rules where they appear
     declaration <node> (60)
         on left: 10 11
         on right: 9
-    statement <root> (61)
+    statement <node> (61)
         on left: 12 13 14 15 16 17 18 19 20
         on right: 21 22
-    statements <root> (62)
+    statements <node> (62)
         on left: 21 22
         on right: 4 13 14 15 16 22
     expression <op_val> (63)
