@@ -24,6 +24,7 @@
    int productionID = 0;
 
    char list_of_function_names[100][100];
+   char* funcList[100];
    int  count_names = 0;
 
 
@@ -225,6 +226,7 @@ function_ident:
 
 
      		 strcpy(list_of_function_names[count_names], token);
+			 //strcpy(funcList[count_names], token);
      		 count_names++;
 
 			 //strcpy($$, "func ");
@@ -629,10 +631,42 @@ term:
 
 			//printf("_name:__%s___\n", $1.name);
 			//printf("_content:__%s___\n", $1.content);
+
+
 			if (strcmp($1.content, func) == 0) { // match!
 				funcBool = 1;	
-				//printf("_funcbool:__%i___\n", funcBool);
 			}
+
+			// char* search = strstr(funcList, $1.content);      
+ 			// if (search != NULL)                     
+ 			// {
+     		// 	printf("Found string");
+ 			// }         
+
+
+			// for(int i = 0; i <= 100; i++){
+			// 	printf(funcList[i]);
+			// }
+
+			// for(int i =0; i < count_names; i++ ) {
+     		// 	printf("%s\n", funcList[i]);
+   			// }
+			
+			int i =0;
+   			for(i =0; i < count_names; i++ ) {
+   			  //printf("%s\n", list_of_function_names[i]);
+				 //size_t size = strlen($1.content) + 1; 
+			     char c[10]= "";
+				 strcpy(c, $1.content);
+				 //printf("---%s---\n", c);
+				 
+				 if (strcmp(c, list_of_function_names[i]) == 0) { 
+					//funcBool = 1;
+					//printf("--%s--\n", list_of_function_names[i]);
+
+				}
+   			}
+
 			strcpy($$.content, $3.name); 
 		};
 
@@ -767,10 +801,10 @@ vars:
 int main(int argc, char **argv)
 {
    yyparse();
-   /*int i =0;
-   for(i =0; i < count_names; i++ ) {
-     printf("%s\n", list_of_function_names[i]);
-   }*/
+//    int i =0;
+//    for(i =0; i < count_names; i++ ) {
+//      printf("%s\n", list_of_function_names[i]);
+//    }
 
    return 0;
 }
