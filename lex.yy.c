@@ -1086,7 +1086,7 @@ YY_RULE_SETUP
   currPos += yyleng; 
   char * token = malloc(sizeof(char) * yyleng);
   strcpy(token, yytext);
-  yylval.op_val = token;
+  yylval.leaf = token;
   numberToken = atoi(yytext); 
   return NUMBER;
 }
@@ -1115,7 +1115,7 @@ YY_RULE_SETUP
    currPos += yyleng;
    char * token = malloc(sizeof(char) * yyleng);
    strcpy(token, yytext);
-   yylval.op_val = token;
+   yylval.leaf = token;
    identToken = yytext; 
    return IDENT;
 }

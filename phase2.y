@@ -1,3 +1,12 @@
+/*
+	TODO:
+	- comma sep expression
+	-relation_exp
+	-error handling
+	-pneumonic errors
+	-array handingl
+*/
+
 %{
    #include <stdio.h>
    #include <string.h>
@@ -10,11 +19,22 @@
    int otherError = 0;
    
    char *identToken;
+   char *identToken2;
    int numberToken;
    int productionID = 0;
 
    char list_of_function_names[100][100];
    int  count_names = 0;
+
+
+   int mainFunc = 0;
+   int funcBool = 0;
+   int zeroArrbool = 0;
+   char *mainStr = "main";
+   char *func = "sub";
+   char *zero = "0";
+   
+
 
 //#define YYDEBUG 1
 //yydebug=1;
@@ -27,9 +47,8 @@
 
 
 %union {
-  char *op_val;
-  char *str_val;
-  char *container;
+  char *leaf;
+  char container[30];
 
   char root[4000];
   
@@ -45,49 +64,82 @@
     char name[30];
 	char content[200];
 	char type[10];
-  } leaf;
+  } term;
+
+  
 }
 
 %define parse.error verbose
 
 
 %type <root> functions function function_ident
-%type <node> declaration declarations statement statements var term ident expressions comma_sep_expressions expression multiplicative_expression vars idents
-//%type <leaf> ident 
-
-//%type <op_val> var
-//%type <op_val> ident
-//%type <op_val> expression
-//%type <op_val> multiplicative_expression
-//%type <op_val> term
-
-
-
-%token BEGIN_PARAMS END_PARAMS BEGIN_LOCALS END_LOCALS BEGIN_BODY END_BODY
-%type <container> end_body
+%type <node> declaration declarations statement statements var term ident idents expressions comma_sep_expressions expression multiplicative_expression 
+%type <node> vars bool_exp relation_exp relation_and_exp paramlocal
+%type <container> end_body 
+%type <leaf> NUMBER IDENT comp
 //%type <container> locals
 
-
-%token FUNCTION RETURN MAIN
+%token BEGIN_PARAMS END_PARAMS BEGIN_LOCALS END_LOCALS BEGIN_BODY END_BODY
+%token FUNCTION MAIN
+%token RETURN
 %token L_SQUARE_BRACKET
 %token R_SQUARE_BRACKET
 %token INTEGER ARRAY OF
 %token IF THEN ENDIF ELSE
-%token WHILE DO BEGINLOOP ENDLOOP  CONTINUE
+%token WHILE DO BEGINLOOP ENDLOOP  
+%token CONTINUE
 %token READ WRITE
 %token AND OR NOT TRUE FALSE
 %token SUB ADD MULT DIV MOD
 %token EQ NEQ LT GT LTE GTE
 %token SEMICOLON COLON COMMA L_PAREN R_PAREN ASSIGN
-%token <op_val> NUMBER 
-%token <op_val> IDENT
+%token NUMBER 
+%token IDENT
+
+//%type <leaf> ident 
+//%type <op_val> var
+//%type <op_val> ident
+//%type <op_val> expression
+//%type <op_val> multiplicative_expression
+//%type <op_val> term
+// %token FUNCTION RETURN MAIN
+// %token L_SQUARE_BRACKET
+// %token R_SQUARE_BRACKET
+// %token INTEGER ARRAY OF
+// %token IF THEN ENDIF ELSE
+// %token WHILE DO BEGINLOOP ENDLOOP  CONTINUE
+// %token READ WRITE
+// %token AND OR NOT TRUE FALSE
+// %token SUB ADD MULT DIV MOD
+// %token EQ NEQ LT GT LTE GTE
+// %token SEMICOLON COLON COMMA L_PAREN R_PAREN ASSIGN
+// %token <op_val> NUMBER 
+// %token <op_val> IDENT
 
 %%
 
 prog_start: 
 	functions
 		{
-			printf("%s",$1);
+			if (mainFunc==0) {
+        		yyerror("ERROR: no main function");
+				yyerror("ERROR: no main function");
+				yyerror("ERROR: no main function");
+      		}
+			else if (funcBool==1) {
+        		yyerror("ERROR: call undefined function");
+				yyerror("ERROR: call undefined function");
+				yyerror("ERROR: call undefined function");
+      		}
+			else if (zeroArrbool==1) {
+        		yyerror("ERROR: assigning number to zero-sized array");
+				yyerror("ERROR: assigning number to zero-sized array");
+				yyerror("ERROR: assigning number to zero-sized array");
+      		}
+			else{
+				printf("%s",$1);	
+			}
+			
 		};
 
 functions: 
@@ -97,21 +149,31 @@ functions:
 			strcat($$, "\n");
 			strcat($$, $2);
 		};
-	|		{strcpy($$, "");}
+	| /*epsilon*/
+		{
+			strcpy($$, "");
+		};
 
-function: function_ident
-	SEMICOLON
-	BEGIN_PARAMS declarations END_PARAMS
-	BEGIN_LOCALS declarations END_LOCALS
-	BEGIN_BODY statements end_body 
+function: 
+	function_ident SEMICOLON
+	paramlocal declarations paramlocal
+	paramlocal declarations paramlocal
+	paramlocal statements end_body 
 	{
-		strcpy($$, "func ");
+		strcpy($$, "\nfunc ");
 		strcat($$,	$1);
 		strcat($$, "\n");
-		strcat($$,	$4.content);
+		strcat($$, $3.content);
+		strcat($$, $4.content);
+		strcat($$, $5.content);
+		strcat($$, $6.content);
 		strcat($$, $7.content);
+		strcat($$, $8.content);
+		strcat($$, $9.content);		
 		strcat($$, $10.content);
-		strcat($$, "endfunc ");
+		strcat($$, "\nendfunc ");
+
+	
 	};
 
 end_body: 
@@ -119,31 +181,69 @@ end_body:
 	{
    		//printf("endfunc\n");
    		strcpy($$, "endfunc ");
-	}
+	};
+
+paramlocal:
+	BEGIN_PARAMS
+		{
+			// char *token2 = identToken;
+     		// printf("   _--%s--_\n   ", token2);
+
+			strcpy($$.content, "");	
+			
+		}
+	| END_PARAMS
+		{
+			// char *token2 = identToken;
+     		// printf("   _--%s--_\n   ", token2);
+			strcpy($$.content, "");	
+		}
+	| BEGIN_LOCALS
+		{
+			strcpy($$.content, "");	
+		}
+	| END_LOCALS
+		{
+			strcpy($$.content, "");	
+		}
+	| BEGIN_BODY
+		{
+			strcpy($$.content, "");	
+		};
+
+function_ident: 
+	FUNCTION ident 
+		{
+    		char *token = identToken;
+     		//printf("___%s___\n", token);
+
+			if (strcmp(token, mainStr) == 0) { // match!
+				mainFunc = 1;	
+			}
 
 
-function_ident: FUNCTION ident 
-	{
-     	// char *token = identToken;
-     	// printf("func %s\n", token);
-     	// strcpy(list_of_function_names[count_names], token);
-     	// count_names++;
 
-		 //strcpy($$, "func ");
-		 strcat($$, $2.content);
 
-		 strcpy(list_of_function_names[count_names], $2.content);
-		 count_names++;
+     		 strcpy(list_of_function_names[count_names], token);
+     		 count_names++;
 
-	}
+			 //strcpy($$, "func ");
+			 strcpy($$, $2.content);
+			 //strcpy(list_of_function_names[count_names], $2.content);
+
+
+
+
+		};
 
 
 ident:
 	IDENT
 		{ 
-			//TODO: distinguish between an array and a normal ident
-			//$$ = $1; 
+			if ($1 == "main") {mainFunc = 1;	}
 			strcpy($$.content, $1);
+			strcpy($$.name, $1);
+			//printf("%s",$1);
 		};
 
 
@@ -165,12 +265,17 @@ declarations:
 	| declaration SEMICOLON declarations
 		{
 			strcpy($$.content, $1.content);
-		  	//strcat($$, $2);
+			//strcat($$.content, ", ");
 		  	strcat($$.content, $3.content);
 		};
 
 declaration: 
-	IDENT COLON INTEGER
+	idents COLON INTEGER
+		{
+		  	strcpy($$.content, $1.content);
+			//printf("IDlist identified");
+		}
+	| IDENT COLON INTEGER
 		{	
 
     	//    char *token = $1;
@@ -178,57 +283,88 @@ declaration:
 
 
 
-			strcpy($$.content, ".");
+			strcpy($$.content, ". ");
 			strcat($$.content, $1);
 			strcat($$.content, "\n");
 
-		}
-	| idents COLON INTEGER
-		{
-		  	strcat($$.content, $1.content);
 		}
 	| IDENT COMMA IDENT COLON INTEGER
 		{
-			strcpy($$.content, ".");
+			strcpy($$.content, ". ");
 			strcat($$.content, $1);
 			strcat($$.content, "\n");
-
-			strcpy($$.content, ".");
+			strcat($$.content, ". ");
 			strcat($$.content, $3);
 			strcat($$.content, "\n");
 		}
 	| IDENT COMMA IDENT COMMA IDENT COLON INTEGER
 		{
-			strcpy($$.content, ".");
+			strcpy($$.content, "_");
 			strcat($$.content, $1);
 			strcat($$.content, "\n");
-
-			strcpy($$.content, ".");
+			strcat($$.content, "_");
 			strcat($$.content, $3);
 			strcat($$.content, "\n");
-
-			strcpy($$.content, ".");
+			strcat($$.content, "_");
 			strcat($$.content, $5);
 			strcat($$.content, "\n");
 		}
 	| IDENT COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER
 		{
-			//TODO: arrays
-			printf("horray! we found an array!   ");
+			strcpy($$.content, ". [] _" );			
+			strcat($$.content, $1);
+			strcat($$.content, ", ");			
+			strcat($$.content, $5);	
+			strcat($$.content, "\n");	
+
+			//printf("number: %s", $5);
+			if (strcmp($5, zero) == 0) { 
+				zeroArrbool = 1;	
+			
+			}		
+		}
+	| IDENT COMMA IDENT COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER
+		{
+			strcpy($$.content, ". [] _" );			
+			strcat($$.content, $1);
+			strcat($$.content, ", _");
+			strcat($$.content, $3);
+			strcat($$.content, ", _");			
+			strcat($$.content, $7);	
+			strcat($$.content, "\n");		
+
+			//printf("number: %s", $7);
+			if (strcmp($7, zero) == 0) { 
+				zeroArrbool = 1;	
+			}		
+		}
+	| IDENT COMMA IDENT COMMA IDENT COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER
+		{
+			strcpy($$.content, ". [] _" );			
+			strcat($$.content, $1);
+			strcat($$.content, ", _");
+			strcat($$.content, $3);
+			strcat($$.content, ", _");
+			strcat($$.content, $5);
+			strcat($$.content, ", _");			
+			strcat($$.content, $9);	
+			strcat($$.content, "\n");				
 		};
 
 
 idents: 
-	/*epsilon*/
+	ident
 		{
-			// strcpy($$.content, $1);
-			// strcpy($$.name, $1)
+			strcpy($$.content, "_");
+			strcat($$.content, $1.content);
+
+			strcpy($$.name, $1.name);
 		}
 	| ident COMMA idents
 		{
-			strcpy($$.content, ".");
+			strcpy($$.content, "_");
 			strcat($$.content, $1.content);
-			strcat($$.content, "\n");
+			strcat($$.content, "\n, ");
 			strcat($$.content, $3.content);
 		};
 
@@ -248,21 +384,78 @@ statement:
 		  
 	}
 	| IF bool_exp THEN statements ENDIF
-		{}
+		{
+			//TODO: do control flow rules for phase3.2
+		}
 	| IF bool_exp THEN statements ELSE statements ENDIF
 		{}
 	| WHILE bool_exp BEGINLOOP statements ENDLOOP
 		{}
 	| DO BEGINLOOP statements ENDLOOP WHILE bool_exp
 		{}
+	| READ var
+		{
+			strcpy($$.content, ".< ");
+			strcat($$.content, $2.content);
+			strcat($$.content, "\n");
+		}
+	| READ var COMMA var
+		{
+			strcpy($$.content, ".< ");
+			strcat($$.content, $2.content);
+			strcat($$.content, "\n.< ");
+			strcat($$.content, $4.content);
+			strcat($$.content, "\n ");
+	
+		}
+	| READ var COMMA var COMMA var
+		{
+			strcpy($$.content, ".< ");
+			strcat($$.content, $2.content);
+			strcat($$.content, "\n.< ");
+			strcat($$.content, $4.content);
+			strcat($$.content, "\n.< ");		
+			strcat($$.content, $6.content);
+			strcat($$.content, "\n");
+		}
+	| WRITE var
+		{
+			strcpy($$.content, ".> ");
+			strcat($$.content, $2.content);
+			strcat($$.content, "\n");
+		}
+	| WRITE var COMMA var
+		{
+			strcpy($$.content, ".> ");
+			strcat($$.content, $2.content);
+			strcat($$.content, "\n.> ");
+			strcat($$.content, $4.content);
+			strcat($$.content, "\n");
+	
+		}
+	| WRITE var COMMA var COMMA var
+		{
+			strcpy($$.content, ".> ");
+			strcat($$.content, $2.content);
+			strcat($$.content, "\n.> ");
+			strcat($$.content, $4.content);
+			strcat($$.content, "\n.> ");		
+			strcat($$.content, $6.content);
+			strcat($$.content, "\n");
+		}
 	| READ vars
-		{}
+		{/*replaced with new rules above*/}
 	| WRITE vars
-		{}
+		{/*replaced with new rules above*/}
 	| CONTINUE
-		{}
+		{
+			strcpy($$.content, "continue");
+		}
 	| RETURN expression
-		{};
+		{
+			strcpy($$.content, $2.content);
+			strcpy($$.name, $2.name);
+		};
 	
 statements: 
 	statement SEMICOLON/* epsilon */
@@ -278,65 +471,62 @@ statements:
 
 expression: 
 	multiplicative_expression
-	{
-		//**TODO: create a struct assign $$ as an object with different fields
-		//$$ = $1; 
-		strcpy($$.content, $1.content);
-	}
+		{
+			//$$ = $1; 
+			strcpy($$.content, $1.content);
+		}
 	| multiplicative_expression ADD expression
-	{     
-  		// char *src1 =  $1;
-  		// char *src2 =  $3;
-  		// char *dest = "__temp__";
-  		// printf("+ %s, %s, %s\n", dest, src1, src2);
-  		// $$ = dest;
+		{     
+  			// char *src1 =  $1;
+  			// char *src2 =  $3;
+  			// char *dest = "__temp__";
+  			// printf("+ %s, %s, %s\n", dest, src1, src2);
+  			// $$ = dest;
 
-		// strcpy($$, "+__temp__ ");
-		// //strcat($$, "__temp__ ");
-		// strcat($$, $1);
-		// strcat($$, ", ");
-		// strcat($$, $3);
-		// strcat($$, "\n");
+			// strcpy($$, "+__temp__ ");
+			// //strcat($$, "__temp__ ");
+			// strcat($$, $1);
+			// strcat($$, ", ");
+			// strcat($$, $3);
+			// strcat($$, "\n");
 
-		strcpy($$.content, $3.content);
+			strcpy($$.content, $3.content);
+			strcat($$.content, $1.content);
+			strcat($$.content, "\n. __temp__\n");
+			strcat($$.content, "+ __temp__, ");
+			strcat($$.content, $1.content);
+			strcat($$.content, ", ");
+			strcat($$.content, $3.content);
 
-		strcat($$.content, $1.content);
-		strcat($$.content, "\n.");
-		strcat($$.content, "__temp__\n");
-		strcat($$.content, "+__temp__, ");
-		strcat($$.content, $1.content);
-		strcat($$.content, ", ");
-		strcat($$.content, $3.content);
 
-		
-	}
+		}
 	| multiplicative_expression SUB expression
-	{
-  		// char *src1 =  $1;
-  		// char *src2 =  $3;
-  		// char *dest = "__temp__";
-  		// printf("- %s, %s, %s\n", dest, src1, src2);
-  		// $$ = dest;
+		{
+  			// char *src1 =  $1;
+  			// char *src2 =  $3;
+  			// char *dest = "__temp__";
+  			// printf("- %s, %s, %s\n", dest, src1, src2);
+  			// $$ = dest;
 
-		// strcpy($$, "-__temp__ ");
-		// //strcat($$, "__temp__ ");
-		// strcat($$, $1);
-		// strcat($$, ", ");
-		// strcat($$, $3);
-		// strcat($$, "\n");
+			// strcpy($$, "-__temp__ ");
+			// //strcat($$, "__temp__ ");
+			// strcat($$, $1);
+			// strcat($$, ", ");
+			// strcat($$, $3);
+			// strcat($$, "\n");
 
-		strcpy($$.content, $3.content);
+			strcpy($$.content, $3.content);
 
-		strcat($$.content, $1.content);
-		strcat($$.content, "\n.");
-		strcat($$.content, "__temp__\n");
-		strcat($$.content, "+__temp__, ");
-		strcat($$.content, $1.content);
-		strcat($$.content, ", ");
-		strcat($$.content, $3.content);
+			strcat($$.content, $1.content);
+			strcat($$.content, "\n.");
+			strcat($$.content, "__temp__\n");
+			strcat($$.content, "+ __temp__, ");
+			strcat($$.content, $1.content);
+			strcat($$.content, ", ");
+			strcat($$.content, $3.content);
 
-	
-	};
+
+		};
 
 multiplicative_expression: 
 	term
@@ -348,24 +538,27 @@ multiplicative_expression:
 	| term MULT multiplicative_expression
 		{
 			strcpy($$.content, $3.content);
+			strcat($$.content, ", ");
 			strcat($$.content, $1.content); 
-			strcat($$.content, "\n.__temp__\n");
-			strcat($$.content, "*__temp__, ");
+			strcat($$.content, "\n. __temp__\n");
+			strcat($$.content, "* __temp__, ");
 			strcat($$.content, $1.name);
 		}
 	| term DIV multiplicative_expression
 		{
 			strcpy($$.content, $3.content);
+			strcat($$.content, ", ");
 			strcat($$.content, $1.content); 
-			strcat($$.content, "\n.__temp__\n");
+			strcat($$.content, "\n. __temp__\n");
 			strcat($$.content, "/__temp__, ");
 			strcat($$.content, $1.name);
 		}
 	| term MOD multiplicative_expression
 		{
 			strcpy($$.content, $3.content);
+			strcat($$.content, ", ");
 			strcat($$.content, $1.content); 
-			strcat($$.content, "\n.__temp__\n");
+			strcat($$.content, "\n. __temp__\n");
 			strcat($$.content, "%_tmp, ");
 			strcat($$.content, $1.name);
 		};
@@ -406,30 +599,40 @@ term:
 		}
 	| NUMBER
 		{ 
-			//$$ = $1;
 			strcpy($$.content, $1);
 			strcpy($$.type, $1);
+			strcpy($$.name, $1);
 		}
 	| SUB NUMBER
 		{ 
 			strcpy($$.content, "-");
 			strcat($$.content, $2);
+			
 			strcpy($$.type, $2); 
+			strcpy($$.name, $2);
 		}
 	| L_PAREN expression R_PAREN
 		{ 
 			//$$ = "SLDKFJDSLKJ";
 			strcpy($$.content, $2.name);
+			
 
 		}
 	| SUB L_PAREN expression R_PAREN
 		{ 
-			//$$ = "SLDKFJDSLKJ";
 			strcpy($$.content, $3.name); 
 		}
 	| ident L_PAREN expressions R_PAREN
 		{ 
-			//$$ = "SLDKFJDSLKJ";
+			//char *token = identToken;
+     		//printf("___%s___\n", token);
+
+			//printf("_name:__%s___\n", $1.name);
+			//printf("_content:__%s___\n", $1.content);
+			if (strcmp($1.content, func) == 0) { // match!
+				funcBool = 1;	
+				//printf("_funcbool:__%i___\n", funcBool);
+			}
 			strcpy($$.content, $3.name); 
 		};
 
@@ -438,33 +641,57 @@ expressions:
 		{
 			strcpy($$.content, ""); 
 		}
-	| comma_sep_expressions
-		{};
-
-comma_sep_expressions: 
-	expression
+	| expression
 		{
 			strcpy($$.content, $1.content);
 		}
-	| expression COMMA comma_sep_expressions
+	| expressions COMMA expression
 		{
 			strcpy($$.content, $1.content);
 			strcat($$.content, "\n");
 			strcat($$.content, $3.content);
 		};
+
+
+
+
 	
 
 bool_exp:
 	relation_and_exp
-		{}
-	| relation_and_exp OR bool_exp
-		{};
+		{
+			strcpy($$.content, $1.content);
+			strcpy($$.name, $1.name );
+		}
+	| bool_exp OR relation_and_exp
+		{
+			strcpy($$.content, $1.content);
+			strcat($$.content, "\n");
+			strcat($$.content, $3.content);
+			strcat($$.content, "\n");	
+			strcat($$.content, ". __temp__\n|| __temp__, ");		
+			strcat($$.content, $1.content);
+			strcat($$.content, ", ");
+			strcat($$.content, $3.content);
+		};
 
 relation_and_exp:
 	relation_exp
-		{}
-	| relation_exp AND relation_and_exp
-		{};
+		{
+			strcpy($$.content, $1.content );
+			strcpy($$.name, $1.name );
+		}
+	| relation_and_exp AND relation_exp 
+		{
+			strcpy($$.content, $1.content);
+			strcat($$.content, "\n");
+			strcat($$.content, $3.content);
+			strcat($$.content, "\n");	
+			strcat($$.content, ". __temp__\n&& __temp__, ");		
+			strcat($$.content, $1.content);
+			strcat($$.content, ", ");
+			strcat($$.content, $3.content);	
+		};
 
 relation_exp:
 	expression comp expression
@@ -486,17 +713,17 @@ relation_exp:
 
 comp:
 	EQ
-		{}
+		{strcpy($$, "==");	}
 	| NEQ
-		{}
+		{strcpy($$, "!=");	}
 	| LT
-		{}
+		{strcpy($$, "<");	}
 	| GT
-		{}
+		{strcpy($$, ">");	}
 	| LTE
-		{}
+		{strcpy($$, "<=");	}
 	| GTE
-		{};
+		{strcpy($$, ">=");	};
 
 var:  ident
 	{	 
@@ -509,7 +736,6 @@ var:  ident
 	{ 
 		//$$ = 0;  /*garbage */
 
-		//*TODO: this is the array
 		
 
 		strcpy($$.content, ".[] ");
@@ -530,7 +756,7 @@ vars:
 		{
 			//TODO: output error if var and vars are of different type
 			//TODO: find the "leaves" and give them "signitures", a thing that is composed of the leaf will inherit the signature as its first token
-			strcat($$.content, $1.content);
+			strcpy($$.content, $1.content);
 			strcat($$.content, ", ");
 			strcat($$.content, $3.content);
 		};

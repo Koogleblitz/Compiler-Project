@@ -1,0 +1,30 @@
+
+func add
+. a
+. b
+pƒ‚ÉÄUpƒ‚ÉÄUba
+. __temp__
++ __temp__, a, b
+endfunc 
+
+func °ƒ‚ÉÄUmult
+. a
+. b
+„‚ÉÄU„‚ÉÄUba
+. __temp__
+* __temp__, a
+endfunc 
+
+func P„‚ÉÄUmain
+„‚ÉÄU. a
+. b
+. c
+. d
+ð„‚ÉÄU= a, 100
+= b, 50
+= c, a
+.> c
+= d, c
+.> d
+
+endfunc 

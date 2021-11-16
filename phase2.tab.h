@@ -56,8 +56,8 @@ extern int yydebug;
     BEGIN_BODY = 262,
     END_BODY = 263,
     FUNCTION = 264,
-    RETURN = 265,
-    MAIN = 266,
+    MAIN = 265,
+    RETURN = 266,
     L_SQUARE_BRACKET = 267,
     R_SQUARE_BRACKET = 268,
     INTEGER = 269,
@@ -105,11 +105,10 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 29 "phase2.y"
+#line 49 "phase2.y"
 
-  char *op_val;
-  char *str_val;
-  char *container;
+  char *leaf;
+  char container[30];
 
   char root[4000];
   
@@ -125,9 +124,11 @@ union YYSTYPE
     char name[30];
 	char content[200];
 	char type[10];
-  } leaf;
+  } term;
 
-#line 131 "phase2.tab.h"
+  
+
+#line 132 "phase2.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

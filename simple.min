@@ -8,6 +8,7 @@ beginlocals
   c : integer;
   n : integer;
   i, j, k: integer;
+  t, u, v: array [20] of integer;
 endlocals
 
 beginbody	

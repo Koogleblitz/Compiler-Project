@@ -64,7 +64,7 @@ return         {currPos += yyleng; return RETURN;}
   currPos += yyleng; 
   char * token = malloc(sizeof(char) * yyleng);
   strcpy(token, yytext);
-  yylval.op_val = token;
+  yylval.leaf = token;
   numberToken = atoi(yytext); 
   return NUMBER;
 }
@@ -79,7 +79,7 @@ return         {currPos += yyleng; return RETURN;}
    currPos += yyleng;
    char * token = malloc(sizeof(char) * yyleng);
    strcpy(token, yytext);
-   yylval.op_val = token;
+   yylval.leaf = token;
    identToken = yytext; 
    return IDENT;
 }

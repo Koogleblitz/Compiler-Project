@@ -1,0 +1,29 @@
+
+func main
+. a
+. b
+. c
+. d
+. e
+ะใสร์U= a, 10
+= b, 2
+= c, 2
+= d, 6
+= e, dcb
+. __temp__
+* __temp__, b
+. __temp__
++ __temp__, cb
+. __temp__
+* __temp__, b, da
+. __temp__
++ __temp__, a, dcb
+. __temp__
+* __temp__, b
+. __temp__
++ __temp__, cb
+. __temp__
+* __temp__, b, d
+.> e
+
+endfunc 
