@@ -62,10 +62,10 @@ return         {currPos += yyleng; return RETURN;}
 
 {DIGIT}+       {
   currPos += yyleng; 
-  char * token = malloc(sizeof(char) * yyleng);
-  strcpy(token, yytext);
-  yylval.leaf = token;
   numberToken = atoi(yytext); 
+  char *buffer = new char[yyleng+1];
+  strcpy(buffer, yytext);
+  yylval.op_val = buffer;
   return NUMBER;
 }
 
@@ -77,10 +77,10 @@ return         {currPos += yyleng; return RETURN;}
 
 ({LETTER})|({LETTER}({LETTER}|{DIGIT}|"_")*({LETTER}|{DIGIT}))     {
    currPos += yyleng;
-   char * token = malloc(sizeof(char) * yyleng);
-   strcpy(token, yytext);
-   yylval.leaf = token;
-   identToken = yytext; 
+   identToken = yytext;
+   char *buffer = new char[yyleng+1];
+  strcpy(buffer, yytext);
+  yylval.op_val = buffer;
    return IDENT;
 }
 

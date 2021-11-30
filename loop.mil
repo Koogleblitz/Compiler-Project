@@ -1,0 +1,20 @@
+$$name--------__temp__2------
+charname--------__temp__2------
+tempIndex--------__temp__2------
+val--------__temp__2---------
+
+func main
+. i
+= i, 0
+: loop_begin0
+. __temp__0
+< __temp__0, i , 10
+! __temp__0, __temp__0
+?:= loop_end0, __temp__0
+. __temp__2
++ __temp__2, i, 1
+= i, __temp__2
+.> i
+:= loop_begin0
+: loop_end0
+endfunc

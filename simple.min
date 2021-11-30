@@ -27,5 +27,8 @@ beginbody
 
   k := 0;
   n := 20;
+
+  write c;
 endbody
+
 

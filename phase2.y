@@ -1,25 +1,49 @@
 /*
 	TODO:
+	- develop dependency tree and figure out the path of attributes inheritance
+	- increment the temps and labels
+	- relation_exp
+	- phase 3 part 2: do control flow operations exceprt logical operators
 	- comma sep expression
-	-relation_exp
-	-error handling
+	
+	- improve error handling
 	-pneumonic errors
-	-array handingl
+	-array handing
+	
+	might do:
+		- figure out a way to compile in C++
+		- do logical operators and complete extra credit
 */
 
 %{
    #include <stdio.h>
    #include <string.h>
    #include <stdlib.h>
-   //#include <string>
+   #include <vector>
+   #include <map>
+   #include <iostream>
+   #include <sstream>
+   #include <string>
+   #include <cstring>
+   using namespace std;
 
    void yyerror(const char *msg);
+   int yylex(void);
+   string indexifyTemp(void);
+   string indexifyElse(void);
+   string indexifyEndif(void);
+   string indexifyLoopB(void);
+   string indexifyLoopE(void);
+
    extern int currLine;
    int myError = 0;
    int otherError = 0;
    
    char *identToken;
    char *identToken2;
+   //static int index = 0;
+   //char tempNum[10] = "0123456789";
+   int label = 1;
    int numberToken;
    int productionID = 0;
 
@@ -32,7 +56,9 @@
    int funcBool = 0;
    int zeroArrbool = 0;
    char *mainStr = "main";
-   char *func = "sub";
+   char *sub = "sub";
+   char *add = "add";
+   char *mult = "mult";
    char *zero = "0";
    
 
@@ -48,6 +74,8 @@
 
 
 %union {
+  //int int_val;
+  char* op_val;
   char *leaf;
   char container[30];
 
@@ -56,8 +84,10 @@
   struct nonTerminal 
   {
     char content[2000];
+	char tempCode [2000];
 	char name[10];
 	char type[10];
+	char val[15];
   } node;
 
   struct terminal 
@@ -75,8 +105,8 @@
 
 %type <root> functions function function_ident
 %type <node> declaration declarations statement statements var term ident idents expressions comma_sep_expressions expression multiplicative_expression 
-%type <node> vars bool_exp relation_exp relation_and_exp paramlocal
-%type <container> end_body 
+%type <node> vars bool_exp relation_exp relation_and_exp paramlocal end_body 
+//%type <container> end_body 
 %type <leaf> NUMBER IDENT comp
 //%type <container> locals
 
@@ -172,7 +202,8 @@ function:
 		strcat($$, $8.content);
 		strcat($$, $9.content);		
 		strcat($$, $10.content);
-		strcat($$, "\nendfunc ");
+		strcat($$, $11.content);
+		//strcat($$, "\nendfunc ");
 
 	
 	};
@@ -181,7 +212,7 @@ end_body:
 	END_BODY 
 	{
    		//printf("endfunc\n");
-   		strcpy($$, "endfunc ");
+   		strcpy($$.content, "endfunc");
 	};
 
 paramlocal:
@@ -190,6 +221,7 @@ paramlocal:
 			// char *token2 = identToken;
      		// printf("   _--%s--_\n   ", token2);
 
+			//printf("BEGIN_PARAMS_--%s--_\n   ", $1.content);  
 			strcpy($$.content, "");	
 			
 		}
@@ -245,7 +277,7 @@ ident:
 			if ($1 == "main") {mainFunc = 1;	}
 			strcpy($$.content, $1);
 			strcpy($$.name, $1);
-			//printf("%s",$1);
+			//printf("%s",$$.content);
 		};
 
 
@@ -262,13 +294,27 @@ ident:
 
 
 declarations: 
-	/* epsilon */
-		{}
-	| declaration SEMICOLON declarations
+	/*epsilon*/
 		{
+			/*These recursive rules are where the pneumonic errors are from, more specifically they come from epsilon where no code is there for the action*/
+			strcpy($$.content, ""); 
+		}
+	| declaration SEMICOLON declarations 
+		{
+			
+
+
 			strcpy($$.content, $1.content);
 			//strcat($$.content, ", ");
+			//strcat($$.content, "\n");
 		  	strcat($$.content, $3.content);
+		  	
+
+
+
+			
+			//printf("___%s___\n", $1.content);  
+			//printf("ee__%s__bb\n", $1.content);  
 		};
 
 declaration: 
@@ -289,6 +335,8 @@ declaration:
 			strcat($$.content, $1);
 			strcat($$.content, "\n");
 
+			strcpy($$.name, $1);
+
 		}
 	| IDENT COMMA IDENT COLON INTEGER
 		{
@@ -298,18 +346,22 @@ declaration:
 			strcat($$.content, ". ");
 			strcat($$.content, $3);
 			strcat($$.content, "\n");
+
+			//strcpy($$.name, $1);
 		}
 	| IDENT COMMA IDENT COMMA IDENT COLON INTEGER
 		{
-			strcpy($$.content, "_");
+			strcpy($$.content, ". ");
 			strcat($$.content, $1);
 			strcat($$.content, "\n");
-			strcat($$.content, "_");
+			strcat($$.content, ". ");
 			strcat($$.content, $3);
 			strcat($$.content, "\n");
-			strcat($$.content, "_");
+			strcat($$.content, ". ");
 			strcat($$.content, $5);
 			strcat($$.content, "\n");
+
+			//strcpy($$.name, $1);
 		}
 	| IDENT COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER
 		{
@@ -329,9 +381,9 @@ declaration:
 		{
 			strcpy($$.content, ". [] _" );			
 			strcat($$.content, $1);
-			strcat($$.content, ", _");
+			strcat($$.content, ", .");
 			strcat($$.content, $3);
-			strcat($$.content, ", _");			
+			strcat($$.content, ", .");			
 			strcat($$.content, $7);	
 			strcat($$.content, "\n");		
 
@@ -374,25 +426,112 @@ idents:
 statement: 
 	var ASSIGN expression
 	{
-  		// char *dest = $1;
-  		// char *src  = $3;
-  		// printf("= %s, %s\n", dest, src);
-
-		  strcpy($$.content, "= ");
-		  strcat($$.content, $1.content);
+		
+		strcpy($$.content, $3.tempCode);
+		  strcat($$.content, "= ");
+		  strcat($$.content, $1.name);
 		  strcat($$.content, ", ");
-		  strcat($$.content, $3.content);
+
+		  //strcat($$.content, $3.name);
+		  if($3.type != "number"){
+			strcat($$.content, $3.val);
+		  }
+		  else{
+			strcat($$.content, $3.name);
+		  }
+
 		  strcat($$.content, "\n");
+
+		  //cout<<"val:--"<<$3.val<<endl<<"--name:--"<<$3.name<<endl;
+
 		  
 	}
+	
 	| IF bool_exp THEN statements ENDIF
 		{
-			//TODO: do control flow rules for phase3.2
+			
+			strcpy($$.content, $2.tempCode);
+			strcat($$.content, "! __temp__0, __temp__0\n?:= else0, __temp__0\n");
+			strcat($$.content, $4.content);
+			strcat($$.content, "\n:= endif0:");
+
+			
+
+
+
 		}
 	| IF bool_exp THEN statements ELSE statements ENDIF
-		{}
+		{
+			//string tempIndex = "__temp__" + indexifyTemp();
+			string tempIndex = $2.name;
+			string elseIndex = "else" + indexifyElse();
+			string endifIndex = "endif" + indexifyEndif();
+			
+
+			strcpy($$.content, $2.tempCode);
+
+
+			string cheese = "! " + tempIndex + ", " + tempIndex + "\n" + "?:= " + elseIndex	+ ", " + tempIndex + "\n";
+			char * charCheese = new char [cheese.length()+1];
+			strcpy(charCheese, cheese.c_str());
+			strcat($$.content, charCheese);
+
+			strcat($$.content, $4.content);
+
+			
+			string beans = ":= "+ endifIndex + "\n: " +elseIndex+ "\n";
+			char * charBeans = new char [beans.length()+1];
+			strcpy(charBeans, beans.c_str());
+			strcat($$.content, charBeans);
+
+			strcat($$.content, $6.content);
+
+			string theory = ": "+endifIndex+"\n";
+			char * charTheory = new char [theory.length()+1];
+			strcpy(charTheory, theory.c_str());
+			strcat($$.content, charTheory);
+
+			
+
+		}
 	| WHILE bool_exp BEGINLOOP statements ENDLOOP
-		{}
+		{
+			//string tempIndex = "__temp__" + indexifyTemp();
+			string tempIndex = $2.name;
+			string loopBegIndex = "loop_begin" + indexifyLoopB();
+			string loopEndIndex = "loop_end" + indexifyLoopE();
+
+			//cout<<"bool name---"<<tempIndex<<"--"<<endl;
+
+			string guitar = ": "+loopBegIndex+"\n";
+			char * charGuitar = new char [guitar.length()+1];
+			strcpy(charGuitar, guitar.c_str());
+			strcpy($$.content, charGuitar);
+
+	
+
+
+			strcat($$.content, $2.tempCode);
+
+			
+			string cheese = "! "+tempIndex+", "+tempIndex+"\n?:= "+loopEndIndex+", "+tempIndex+"\n";
+			char * charCheese = new char [cheese.length()+1];
+			strcpy(charCheese, cheese.c_str());
+			strcat($$.content, charCheese);
+
+
+			strcat($$.content, $4.content);
+
+			string  beans = ":= "+loopBegIndex+"\n: "+loopEndIndex+"\n";
+			char * charBeans = new char [ beans.length()+1];
+			strcpy(charBeans, beans.c_str());
+			strcat($$.content, charBeans);
+
+
+			
+			
+
+		}
 	| DO BEGINLOOP statements ENDLOOP WHILE bool_exp
 		{}
 	| READ var
@@ -460,7 +599,7 @@ statement:
 		};
 	
 statements: 
-	statement SEMICOLON/* epsilon */
+	statement SEMICOLON /* epsilon */
 		{
 			strcpy($$.content, $1.content);
 		}
@@ -474,58 +613,77 @@ statements:
 expression: 
 	multiplicative_expression
 		{
-			//$$ = $1; 
+		
 			strcpy($$.content, $1.content);
+			strcpy($$.name, $1.name);
+			strcpy($$.type, $1.type);
+			strcpy($$.tempCode, "");
+			strcpy($$.val, $1.val);
 		}
 	| multiplicative_expression ADD expression
 		{     
-  			// char *src1 =  $1;
-  			// char *src2 =  $3;
-  			// char *dest = "__temp__";
-  			// printf("+ %s, %s, %s\n", dest, src1, src2);
-  			// $$ = dest;
+  		
+		
+			string tempIndex = "__temp__" + indexifyTemp();
+			//string tempIndex = $1.name;
+			
+			
+		
+			string name = tempIndex;
+			char * charName = new char [name.length()+1];
+			strcpy(charName, name.c_str());
+			//strcat($$.content, charName); 
 
-			// strcpy($$, "+__temp__ ");
-			// //strcat($$, "__temp__ ");
-			// strcat($$, $1);
-			// strcat($$, ", ");
-			// strcat($$, $3);
-			// strcat($$, "\n");
+			string cheese = ". "+tempIndex+"\n";
+			char * charCheese = new char [cheese.length()+1];
+			strcpy(charCheese, cheese.c_str());
+			//strcat($$.content, charCheese);
 
-			strcpy($$.content, $3.content);
-			strcat($$.content, $1.content);
-			strcat($$.content, "\n. __temp__\n");
-			strcat($$.content, "+ __temp__, ");
-			strcat($$.content, $1.content);
-			strcat($$.content, ", ");
+			string beans = "+ "+tempIndex+", ";
+			char * charBeans = new char [beans.length()+1];
+			strcpy(charBeans, beans.c_str());
+			//strcat($$.content, charBeans);
+			
+			strcpy($$.name, charName );
+			strcpy($$.val, charName);
+
+			
+			strcpy($$.content, $1.content);
 			strcat($$.content, $3.content);
+			
+			
+			strcpy($$.tempCode, charCheese);
+			strcat($$.tempCode, charBeans);
+			strcat($$.tempCode, $1.val);
+			strcat($$.tempCode, ", ");
+			strcat($$.tempCode, $3.name);
+			strcat($$.tempCode, "\n");
 
+			//cout<<"multex tempcode:"<<endl<<"----"<<$$.tempCode<<"---"<<endl;
+			cout<<"$$name--------"<<$$.name<<"------"<<endl;
+			cout<<"charname--------"<<charName<<"------"<<endl;
+			cout<<"tempIndex--------"<<tempIndex<<"------"<<endl;
+			cout<<"val--------"<<$$.val<<"---------"<<endl;
+
+			
 
 		}
 	| multiplicative_expression SUB expression
 		{
-  			// char *src1 =  $1;
-  			// char *src2 =  $3;
-  			// char *dest = "__temp__";
-  			// printf("- %s, %s, %s\n", dest, src1, src2);
-  			// $$ = dest;
+  			
+			strcpy($$.name, "__temp__");
 
-			// strcpy($$, "-__temp__ ");
-			// //strcat($$, "__temp__ ");
-			// strcat($$, $1);
-			// strcat($$, ", ");
-			// strcat($$, $3);
-			// strcat($$, "\n");
-
-			strcpy($$.content, $3.content);
-
-			strcat($$.content, $1.content);
-			strcat($$.content, "\n.");
-			strcat($$.content, "__temp__\n");
-			strcat($$.content, "+ __temp__, ");
-			strcat($$.content, $1.content);
-			strcat($$.content, ", ");
+			
+			strcpy($$.content, $1.content);
 			strcat($$.content, $3.content);
+			
+			strcpy($$.tempCode, ". __temp__\n");
+			strcat($$.tempCode, "- __temp__, ");
+			strcat($$.tempCode, $1.name);
+			strcat($$.tempCode, ", ");
+			strcat($$.tempCode, $3.name);
+			strcat($$.tempCode, "\n");
+
 
 
 		};
@@ -535,7 +693,10 @@ multiplicative_expression:
 		{ 
 			//$$ = $1;
 			strcpy($$.content, $1.content);
-
+			strcpy($$.name, $1.name);
+			strcpy($$.val, $1.val);
+			strcpy($$.type, $1.type);
+			
 		}
 	| term MULT multiplicative_expression
 		{
@@ -545,6 +706,8 @@ multiplicative_expression:
 			strcat($$.content, "\n. __temp__\n");
 			strcat($$.content, "* __temp__, ");
 			strcat($$.content, $1.name);
+
+			
 		}
 	| term DIV multiplicative_expression
 		{
@@ -554,6 +717,8 @@ multiplicative_expression:
 			strcat($$.content, "\n. __temp__\n");
 			strcat($$.content, "/__temp__, ");
 			strcat($$.content, $1.name);
+
+			
 		}
 	| term MOD multiplicative_expression
 		{
@@ -568,21 +733,54 @@ multiplicative_expression:
 term: 
 	var
 		{ 
-			strcpy($$.content, $1.content);			
-			strcpy($$.name, $1.name);
-			strcpy($$.type, $1.type);
 
-			//$$ = $1;
-			if($1.type == "ident"){
-				strcpy($$.content, ". __temp__\n"); 
-				strcat($$.content, "=__temp__, ");
-				strcat($$.content, $1.content);			
-			}
-			else if($1.type == "array"){
-				strcpy($$.content, "=[], ");
-				strcat($$.content, $1.name);
+			string tempIndex = "__temp__" + indexifyTemp();
+
+				//cout<<"term temp: --"<<tempIndex<<"--"<<endl;
+
+
+			string name = tempIndex;
+			char * charName = new char [name.length()+1];
+			strcpy(charName, name.c_str());
+
+			string cheese = ". "+tempIndex+"\n";
+			char * charCheese = new char [cheese.length()+1];
+			strcpy(charCheese, cheese.c_str());
+	
+
+			string beans = "= "+tempIndex+", ";
+			char * charBeans = new char [beans.length()+1];
+			strcpy(charBeans, beans.c_str());
+
+			
+			strcpy($$.type, $1.type);
+				strcpy($$.name, charName);
+				strcpy($$.val, $1.val);
+				
+
+				strcpy($$.content, charCheese); 
+				strcat($$.content, charBeans);
+				strcat($$.content, $1.name);	
+
+				//cout<<"charName, $$name: --"<<charName<<"--"<<$$.name<<"--"<<tempIndex<<endl;	
+			
+			// if($1.type == "variable"){
+				
+			// 	strcpy($$.type, $1.type);
+			// 	strcpy($$.name, charName);
+				
+
+			// 	strcpy($$.content, charCheese); 
+			// 	strcat($$.content, charBeans);
+			// 	strcat($$.content, $1.name);	
+
+			// 	cout<<"charName, $$name: --"<<charName<<"--"<<$$.name<<"--"<<tempIndex<<endl;	
+			// }
+			// else if($1.type == "array"){
+			// 	strcpy($$.content, "=[], ");
+			// 	strcat($$.content, $1.name);
 							
-			}
+			// }
 
 		}
 	| SUB var
@@ -601,9 +799,12 @@ term:
 		}
 	| NUMBER
 		{ 
+			
 			strcpy($$.content, $1);
-			strcpy($$.type, $1);
 			strcpy($$.name, $1);
+			strcpy($$.type, "number");
+			strcpy($$.val, $1);
+			
 		}
 	| SUB NUMBER
 		{ 
@@ -633,7 +834,7 @@ term:
 			//printf("_content:__%s___\n", $1.content);
 
 
-			if (strcmp($1.content, func) == 0) { // match!
+			if (strcmp($1.content, sub) == 0) { // match!
 				funcBool = 1;	
 			}
 
@@ -694,8 +895,11 @@ expressions:
 bool_exp:
 	relation_and_exp
 		{
+			
 			strcpy($$.content, $1.content);
+			strcpy($$.tempCode, $1.tempCode);
 			strcpy($$.name, $1.name );
+			strcpy($$.val, $1.val);
 		}
 	| bool_exp OR relation_and_exp
 		{
@@ -713,7 +917,9 @@ relation_and_exp:
 	relation_exp
 		{
 			strcpy($$.content, $1.content );
+			strcpy($$.tempCode, $1.tempCode);
 			strcpy($$.name, $1.name );
+			strcpy($$.val, $1.val);
 		}
 	| relation_and_exp AND relation_exp 
 		{
@@ -729,9 +935,44 @@ relation_and_exp:
 
 relation_exp:
 	expression comp expression
-		{}
+		{
+			//string tempIndex = "__temp__" + indexifyTemp();
+			string tempIndex = $1.name;
+
+			//cout<<"rel_exp temp index: ---"<<tempIndex<<"---"<<endl;
+
+			string name = tempIndex;
+			char * charName = new char [name.length()+1];
+			strcpy(charName, name.c_str());
+
+			string cheese = ". "+tempIndex+"\n";
+			char * charCheese = new char [cheese.length()+1];
+			strcpy(charCheese, cheese.c_str());
+
+			string beans = " "+tempIndex+", ";
+			char * charBeans = new char [beans.length()+1];
+			strcpy(charBeans, beans.c_str());
+
+
+			strcpy($$.name, charName);
+			strcpy($$.content, $1.content);
+			strcpy($$.val, $1.val);
+
+			strcpy($$.tempCode, charCheese);
+			strcat($$.tempCode, $2);			
+			strcat($$.tempCode, charBeans);
+			strcat($$.tempCode, $1.val);	
+			strcat($$.tempCode, " , ");
+			strcat($$.tempCode, $3.val);	
+			strcat($$.tempCode, "\n");
+
+
+		}
 	| NOT expression comp expression
-		{}
+		{
+
+
+		}
 	| TRUE
 		{}
 	| NOT TRUE
@@ -761,8 +1002,11 @@ comp:
 
 var:  ident
 	{	 
+		//strcpy($$.content, "_");
     	strcpy($$.content, $1.content);
-		strcpy($$.type, "ident");
+		strcpy($$.val, $1.content);
+		strcpy($$.name, $1.name);
+		strcpy($$.type, "variable");
 
 	}
 
@@ -797,6 +1041,28 @@ vars:
 	
 
 %%
+
+string indexifyTemp() {
+  static int index1 = 0;
+  return to_string(index1++);
+}
+string indexifyElse(void){
+	static int index2 = 0;
+	return to_string(index2++);
+}
+string indexifyEndif(void){
+	static int index3 = 0;
+	return to_string(index3++);
+}
+string indexifyLoopB(void){
+	static int index4 = 0;
+	return to_string(index4++);
+}
+string indexifyLoopE(void){
+	static int index5 = 0;
+	return to_string(index5++);
+}
+
 
 int main(int argc, char **argv)
 {

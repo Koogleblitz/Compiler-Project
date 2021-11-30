@@ -191,7 +191,7 @@ Nonterminals, with rules where they appear
     function <root> (55)
         on left: 4
         on right: 2
-    end_body <container> (56)
+    end_body <node> (56)
         on left: 5
         on right: 4
     paramlocal <node> (57)

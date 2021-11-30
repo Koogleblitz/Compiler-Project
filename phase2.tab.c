@@ -66,20 +66,36 @@
 
 
 /* First part of user prologue.  */
-#line 10 "phase2.y"
+#line 18 "phase2.y"
 
    #include <stdio.h>
    #include <string.h>
    #include <stdlib.h>
-   //#include <string>
+   #include <vector>
+   #include <map>
+   #include <iostream>
+   #include <sstream>
+   #include <string>
+   #include <cstring>
+   using namespace std;
 
    void yyerror(const char *msg);
+   int yylex(void);
+   string indexifyTemp(void);
+   string indexifyElse(void);
+   string indexifyEndif(void);
+   string indexifyLoopB(void);
+   string indexifyLoopE(void);
+
    extern int currLine;
    int myError = 0;
    int otherError = 0;
    
    char *identToken;
    char *identToken2;
+   //static int index = 0;
+   //char tempNum[10] = "0123456789";
+   int label = 1;
    int numberToken;
    int productionID = 0;
 
@@ -92,7 +108,9 @@
    int funcBool = 0;
    int zeroArrbool = 0;
    char *mainStr = "main";
-   char *func = "sub";
+   char *sub = "sub";
+   char *add = "add";
+   char *mult = "mult";
    char *zero = "0";
    
 
@@ -100,7 +118,7 @@
 //#define YYDEBUG 1
 //yydebug=1;
 
-#line 104 "phase2.tab.c"
+#line 122 "phase2.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -204,8 +222,10 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 50 "phase2.y"
+#line 76 "phase2.y"
 
+  //int int_val;
+  char* op_val;
   char *leaf;
   char container[30];
 
@@ -214,8 +234,10 @@ union YYSTYPE
   struct nonTerminal 
   {
     char content[2000];
+	char tempCode [2000];
 	char name[10];
 	char type[10];
+	char val[15];
   } node;
 
   struct terminal 
@@ -227,7 +249,7 @@ union YYSTYPE
 
   
 
-#line 231 "phase2.tab.c"
+#line 253 "phase2.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -607,15 +629,15 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   123,   123,   147,   154,   159,   181,   188,   196,   202,
-     206,   210,   216,   243,   266,   267,   275,   280,   293,   302,
-     314,   328,   343,   358,   365,   375,   388,   392,   394,   396,
-     398,   404,   413,   423,   429,   438,   448,   450,   452,   456,
-     463,   467,   475,   480,   505,   534,   540,   549,   558,   569,
-     588,   602,   608,   616,   623,   627,   675,   678,   682,   695,
-     700,   713,   718,   731,   733,   735,   737,   739,   741,   743,
-     745,   749,   751,   753,   755,   757,   759,   762,   769,   784,
-     789
+       0,   153,   153,   177,   184,   189,   212,   219,   228,   234,
+     238,   242,   248,   275,   298,   302,   321,   326,   341,   352,
+     366,   380,   395,   410,   417,   427,   450,   463,   497,   535,
+     537,   543,   552,   562,   568,   577,   587,   589,   591,   595,
+     602,   606,   614,   623,   671,   692,   701,   712,   723,   734,
+     786,   800,   809,   817,   824,   828,   876,   879,   883,   896,
+     904,   917,   924,   937,   971,   976,   978,   980,   982,   984,
+     986,   990,   992,   994,   996,   998,  1000,  1003,  1013,  1028,
+    1033
 };
 #endif
 
@@ -1524,7 +1546,7 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 124 "phase2.y"
+#line 154 "phase2.y"
                 {
 			if (mainFunc==0) {
         		yyerror("ERROR: no main function");
@@ -1546,29 +1568,29 @@ yyreduce:
 			}
 			
 		}
-#line 1550 "phase2.tab.c"
+#line 1572 "phase2.tab.c"
     break;
 
   case 3:
-#line 148 "phase2.y"
+#line 178 "phase2.y"
                 {
 			strcpy((yyval.root), (yyvsp[-1].root));
 			strcat((yyval.root), "\n");
 			strcat((yyval.root), (yyvsp[0].root));
 		}
-#line 1560 "phase2.tab.c"
+#line 1582 "phase2.tab.c"
     break;
 
   case 4:
-#line 154 "phase2.y"
+#line 184 "phase2.y"
                 {
 			strcpy((yyval.root), "");
 		}
-#line 1568 "phase2.tab.c"
+#line 1590 "phase2.tab.c"
     break;
 
   case 5:
-#line 163 "phase2.y"
+#line 193 "phase2.y"
         {
 		strcpy((yyval.root), "\nfunc ");
 		strcat((yyval.root),	(yyvsp[-10].root));
@@ -1581,70 +1603,72 @@ yyreduce:
 		strcat((yyval.root), (yyvsp[-3].node).content);
 		strcat((yyval.root), (yyvsp[-2].node).content);		
 		strcat((yyval.root), (yyvsp[-1].node).content);
-		strcat((yyval.root), "\nendfunc ");
+		strcat((yyval.root), (yyvsp[0].node).content);
+		//strcat($$, "\nendfunc ");
 
 	
 	}
-#line 1589 "phase2.tab.c"
+#line 1612 "phase2.tab.c"
     break;
 
   case 6:
-#line 182 "phase2.y"
+#line 213 "phase2.y"
         {
    		//printf("endfunc\n");
-   		strcpy((yyval.container), "endfunc ");
+   		strcpy((yyval.node).content, "endfunc");
 	}
-#line 1598 "phase2.tab.c"
+#line 1621 "phase2.tab.c"
     break;
 
   case 7:
-#line 189 "phase2.y"
+#line 220 "phase2.y"
                 {
 			// char *token2 = identToken;
      		// printf("   _--%s--_\n   ", token2);
 
+			//printf("BEGIN_PARAMS_--%s--_\n   ", $1.content);  
 			strcpy((yyval.node).content, "");	
 			
 		}
-#line 1610 "phase2.tab.c"
+#line 1634 "phase2.tab.c"
     break;
 
   case 8:
-#line 197 "phase2.y"
+#line 229 "phase2.y"
                 {
 			// char *token2 = identToken;
      		// printf("   _--%s--_\n   ", token2);
-			strcpy((yyval.node).content, "");	
-		}
-#line 1620 "phase2.tab.c"
-    break;
-
-  case 9:
-#line 203 "phase2.y"
-                {
-			strcpy((yyval.node).content, "");	
-		}
-#line 1628 "phase2.tab.c"
-    break;
-
-  case 10:
-#line 207 "phase2.y"
-                {
-			strcpy((yyval.node).content, "");	
-		}
-#line 1636 "phase2.tab.c"
-    break;
-
-  case 11:
-#line 211 "phase2.y"
-                {
 			strcpy((yyval.node).content, "");	
 		}
 #line 1644 "phase2.tab.c"
     break;
 
+  case 9:
+#line 235 "phase2.y"
+                {
+			strcpy((yyval.node).content, "");	
+		}
+#line 1652 "phase2.tab.c"
+    break;
+
+  case 10:
+#line 239 "phase2.y"
+                {
+			strcpy((yyval.node).content, "");	
+		}
+#line 1660 "phase2.tab.c"
+    break;
+
+  case 11:
+#line 243 "phase2.y"
+                {
+			strcpy((yyval.node).content, "");	
+		}
+#line 1668 "phase2.tab.c"
+    break;
+
   case 12:
-#line 217 "phase2.y"
+#line 249 "phase2.y"
                 {
     		char *token = identToken;
      		//printf("___%s___\n", token);
@@ -1668,47 +1692,61 @@ yyreduce:
 
 
 		}
-#line 1672 "phase2.tab.c"
+#line 1696 "phase2.tab.c"
     break;
 
   case 13:
-#line 244 "phase2.y"
+#line 276 "phase2.y"
                 { 
 			if ((yyvsp[0].leaf) == "main") {mainFunc = 1;	}
 			strcpy((yyval.node).content, (yyvsp[0].leaf));
 			strcpy((yyval.node).name, (yyvsp[0].leaf));
-			//printf("%s",$1);
+			//printf("%s",$$.content);
 		}
-#line 1683 "phase2.tab.c"
+#line 1707 "phase2.tab.c"
     break;
 
   case 14:
-#line 266 "phase2.y"
-                {}
-#line 1689 "phase2.tab.c"
+#line 298 "phase2.y"
+                {
+			/*These recursive rules are where the pneumonic errors are from, more specifically they come from epsilon where no code is there for the action*/
+			strcpy((yyval.node).content, ""); 
+		}
+#line 1716 "phase2.tab.c"
     break;
 
   case 15:
-#line 268 "phase2.y"
+#line 303 "phase2.y"
                 {
+			
+
+
 			strcpy((yyval.node).content, (yyvsp[-2].node).content);
 			//strcat($$.content, ", ");
+			//strcat($$.content, "\n");
 		  	strcat((yyval.node).content, (yyvsp[0].node).content);
+		  	
+
+
+
+			
+			//printf("___%s___\n", $1.content);  
+			//printf("ee__%s__bb\n", $1.content);  
 		}
-#line 1699 "phase2.tab.c"
+#line 1737 "phase2.tab.c"
     break;
 
   case 16:
-#line 276 "phase2.y"
+#line 322 "phase2.y"
                 {
 		  	strcpy((yyval.node).content, (yyvsp[-2].node).content);
 			//printf("IDlist identified");
 		}
-#line 1708 "phase2.tab.c"
+#line 1746 "phase2.tab.c"
     break;
 
   case 17:
-#line 281 "phase2.y"
+#line 327 "phase2.y"
                 {	
 
     	//    char *token = $1;
@@ -1720,12 +1758,14 @@ yyreduce:
 			strcat((yyval.node).content, (yyvsp[-2].leaf));
 			strcat((yyval.node).content, "\n");
 
+			strcpy((yyval.node).name, (yyvsp[-2].leaf));
+
 		}
-#line 1725 "phase2.tab.c"
+#line 1765 "phase2.tab.c"
     break;
 
   case 18:
-#line 294 "phase2.y"
+#line 342 "phase2.y"
                 {
 			strcpy((yyval.node).content, ". ");
 			strcat((yyval.node).content, (yyvsp[-4].leaf));
@@ -1733,28 +1773,32 @@ yyreduce:
 			strcat((yyval.node).content, ". ");
 			strcat((yyval.node).content, (yyvsp[-2].leaf));
 			strcat((yyval.node).content, "\n");
+
+			//strcpy($$.name, $1);
 		}
-#line 1738 "phase2.tab.c"
+#line 1780 "phase2.tab.c"
     break;
 
   case 19:
-#line 303 "phase2.y"
+#line 353 "phase2.y"
                 {
-			strcpy((yyval.node).content, "_");
+			strcpy((yyval.node).content, ". ");
 			strcat((yyval.node).content, (yyvsp[-6].leaf));
 			strcat((yyval.node).content, "\n");
-			strcat((yyval.node).content, "_");
+			strcat((yyval.node).content, ". ");
 			strcat((yyval.node).content, (yyvsp[-4].leaf));
 			strcat((yyval.node).content, "\n");
-			strcat((yyval.node).content, "_");
+			strcat((yyval.node).content, ". ");
 			strcat((yyval.node).content, (yyvsp[-2].leaf));
 			strcat((yyval.node).content, "\n");
+
+			//strcpy($$.name, $1);
 		}
-#line 1754 "phase2.tab.c"
+#line 1798 "phase2.tab.c"
     break;
 
   case 20:
-#line 315 "phase2.y"
+#line 367 "phase2.y"
                 {
 			strcpy((yyval.node).content, ". [] _" );			
 			strcat((yyval.node).content, (yyvsp[-7].leaf));
@@ -1768,17 +1812,17 @@ yyreduce:
 			
 			}		
 		}
-#line 1772 "phase2.tab.c"
+#line 1816 "phase2.tab.c"
     break;
 
   case 21:
-#line 329 "phase2.y"
+#line 381 "phase2.y"
                 {
 			strcpy((yyval.node).content, ". [] _" );			
 			strcat((yyval.node).content, (yyvsp[-9].leaf));
-			strcat((yyval.node).content, ", _");
+			strcat((yyval.node).content, ", .");
 			strcat((yyval.node).content, (yyvsp[-7].leaf));
-			strcat((yyval.node).content, ", _");			
+			strcat((yyval.node).content, ", .");			
 			strcat((yyval.node).content, (yyvsp[-3].leaf));	
 			strcat((yyval.node).content, "\n");		
 
@@ -1787,11 +1831,11 @@ yyreduce:
 				zeroArrbool = 1;	
 			}		
 		}
-#line 1791 "phase2.tab.c"
+#line 1835 "phase2.tab.c"
     break;
 
   case 22:
-#line 344 "phase2.y"
+#line 396 "phase2.y"
                 {
 			strcpy((yyval.node).content, ". [] _" );			
 			strcat((yyval.node).content, (yyvsp[-11].leaf));
@@ -1803,86 +1847,172 @@ yyreduce:
 			strcat((yyval.node).content, (yyvsp[-3].leaf));	
 			strcat((yyval.node).content, "\n");				
 		}
-#line 1807 "phase2.tab.c"
+#line 1851 "phase2.tab.c"
     break;
 
   case 23:
-#line 359 "phase2.y"
+#line 411 "phase2.y"
                 {
 			strcpy((yyval.node).content, "_");
 			strcat((yyval.node).content, (yyvsp[0].node).content);
 
 			strcpy((yyval.node).name, (yyvsp[0].node).name);
 		}
-#line 1818 "phase2.tab.c"
+#line 1862 "phase2.tab.c"
     break;
 
   case 24:
-#line 366 "phase2.y"
+#line 418 "phase2.y"
                 {
 			strcpy((yyval.node).content, "_");
 			strcat((yyval.node).content, (yyvsp[-2].node).content);
 			strcat((yyval.node).content, "\n, ");
 			strcat((yyval.node).content, (yyvsp[0].node).content);
 		}
-#line 1829 "phase2.tab.c"
+#line 1873 "phase2.tab.c"
     break;
 
   case 25:
-#line 376 "phase2.y"
+#line 428 "phase2.y"
         {
-  		// char *dest = $1;
-  		// char *src  = $3;
-  		// printf("= %s, %s\n", dest, src);
-
-		  strcpy((yyval.node).content, "= ");
-		  strcat((yyval.node).content, (yyvsp[-2].node).content);
+		
+		strcpy((yyval.node).content, (yyvsp[0].node).tempCode);
+		  strcat((yyval.node).content, "= ");
+		  strcat((yyval.node).content, (yyvsp[-2].node).name);
 		  strcat((yyval.node).content, ", ");
-		  strcat((yyval.node).content, (yyvsp[0].node).content);
+
+		  //strcat($$.content, $3.name);
+		  if((yyvsp[0].node).type != "number"){
+			strcat((yyval.node).content, (yyvsp[0].node).val);
+		  }
+		  else{
+			strcat((yyval.node).content, (yyvsp[0].node).name);
+		  }
+
 		  strcat((yyval.node).content, "\n");
+
+		  //cout<<"val:--"<<$3.val<<endl<<"--name:--"<<$3.name<<endl;
+
 		  
 	}
-#line 1846 "phase2.tab.c"
+#line 1899 "phase2.tab.c"
     break;
 
   case 26:
-#line 389 "phase2.y"
+#line 451 "phase2.y"
                 {
-			//TODO: do control flow rules for phase3.2
+			
+			strcpy((yyval.node).content, (yyvsp[-3].node).tempCode);
+			strcat((yyval.node).content, "! __temp__0, __temp__0\n?:= else0, __temp__0\n");
+			strcat((yyval.node).content, (yyvsp[-1].node).content);
+			strcat((yyval.node).content, "\n:= endif0:");
+
+			
+
+
+
 		}
-#line 1854 "phase2.tab.c"
+#line 1916 "phase2.tab.c"
     break;
 
   case 27:
-#line 393 "phase2.y"
-                {}
-#line 1860 "phase2.tab.c"
+#line 464 "phase2.y"
+                {
+			//string tempIndex = "__temp__" + indexifyTemp();
+			string tempIndex = (yyvsp[-5].node).name;
+			string elseIndex = "else" + indexifyElse();
+			string endifIndex = "endif" + indexifyEndif();
+			
+
+			strcpy((yyval.node).content, (yyvsp[-5].node).tempCode);
+
+
+			string cheese = "! " + tempIndex + ", " + tempIndex + "\n" + "?:= " + elseIndex	+ ", " + tempIndex + "\n";
+			char * charCheese = new char [cheese.length()+1];
+			strcpy(charCheese, cheese.c_str());
+			strcat((yyval.node).content, charCheese);
+
+			strcat((yyval.node).content, (yyvsp[-3].node).content);
+
+			
+			string beans = ":= "+ endifIndex + "\n: " +elseIndex+ "\n";
+			char * charBeans = new char [beans.length()+1];
+			strcpy(charBeans, beans.c_str());
+			strcat((yyval.node).content, charBeans);
+
+			strcat((yyval.node).content, (yyvsp[-1].node).content);
+
+			string theory = ": "+endifIndex+"\n";
+			char * charTheory = new char [theory.length()+1];
+			strcpy(charTheory, theory.c_str());
+			strcat((yyval.node).content, charTheory);
+
+			
+
+		}
+#line 1954 "phase2.tab.c"
     break;
 
   case 28:
-#line 395 "phase2.y"
-                {}
-#line 1866 "phase2.tab.c"
+#line 498 "phase2.y"
+                {
+			//string tempIndex = "__temp__" + indexifyTemp();
+			string tempIndex = (yyvsp[-3].node).name;
+			string loopBegIndex = "loop_begin" + indexifyLoopB();
+			string loopEndIndex = "loop_end" + indexifyLoopE();
+
+			//cout<<"bool name---"<<tempIndex<<"--"<<endl;
+
+			string guitar = ": "+loopBegIndex+"\n";
+			char * charGuitar = new char [guitar.length()+1];
+			strcpy(charGuitar, guitar.c_str());
+			strcpy((yyval.node).content, charGuitar);
+
+	
+
+
+			strcat((yyval.node).content, (yyvsp[-3].node).tempCode);
+
+			
+			string cheese = "! "+tempIndex+", "+tempIndex+"\n?:= "+loopEndIndex+", "+tempIndex+"\n";
+			char * charCheese = new char [cheese.length()+1];
+			strcpy(charCheese, cheese.c_str());
+			strcat((yyval.node).content, charCheese);
+
+
+			strcat((yyval.node).content, (yyvsp[-1].node).content);
+
+			string  beans = ":= "+loopBegIndex+"\n: "+loopEndIndex+"\n";
+			char * charBeans = new char [ beans.length()+1];
+			strcpy(charBeans, beans.c_str());
+			strcat((yyval.node).content, charBeans);
+
+
+			
+			
+
+		}
+#line 1996 "phase2.tab.c"
     break;
 
   case 29:
-#line 397 "phase2.y"
+#line 536 "phase2.y"
                 {}
-#line 1872 "phase2.tab.c"
+#line 2002 "phase2.tab.c"
     break;
 
   case 30:
-#line 399 "phase2.y"
+#line 538 "phase2.y"
                 {
 			strcpy((yyval.node).content, ".< ");
 			strcat((yyval.node).content, (yyvsp[0].node).content);
 			strcat((yyval.node).content, "\n");
 		}
-#line 1882 "phase2.tab.c"
+#line 2012 "phase2.tab.c"
     break;
 
   case 31:
-#line 405 "phase2.y"
+#line 544 "phase2.y"
                 {
 			strcpy((yyval.node).content, ".< ");
 			strcat((yyval.node).content, (yyvsp[-2].node).content);
@@ -1891,11 +2021,11 @@ yyreduce:
 			strcat((yyval.node).content, "\n ");
 	
 		}
-#line 1895 "phase2.tab.c"
+#line 2025 "phase2.tab.c"
     break;
 
   case 32:
-#line 414 "phase2.y"
+#line 553 "phase2.y"
                 {
 			strcpy((yyval.node).content, ".< ");
 			strcat((yyval.node).content, (yyvsp[-4].node).content);
@@ -1905,21 +2035,21 @@ yyreduce:
 			strcat((yyval.node).content, (yyvsp[0].node).content);
 			strcat((yyval.node).content, "\n");
 		}
-#line 1909 "phase2.tab.c"
+#line 2039 "phase2.tab.c"
     break;
 
   case 33:
-#line 424 "phase2.y"
+#line 563 "phase2.y"
                 {
 			strcpy((yyval.node).content, ".> ");
 			strcat((yyval.node).content, (yyvsp[0].node).content);
 			strcat((yyval.node).content, "\n");
 		}
-#line 1919 "phase2.tab.c"
+#line 2049 "phase2.tab.c"
     break;
 
   case 34:
-#line 430 "phase2.y"
+#line 569 "phase2.y"
                 {
 			strcpy((yyval.node).content, ".> ");
 			strcat((yyval.node).content, (yyvsp[-2].node).content);
@@ -1928,11 +2058,11 @@ yyreduce:
 			strcat((yyval.node).content, "\n");
 	
 		}
-#line 1932 "phase2.tab.c"
+#line 2062 "phase2.tab.c"
     break;
 
   case 35:
-#line 439 "phase2.y"
+#line 578 "phase2.y"
                 {
 			strcpy((yyval.node).content, ".> ");
 			strcat((yyval.node).content, (yyvsp[-4].node).content);
@@ -1942,137 +2072,159 @@ yyreduce:
 			strcat((yyval.node).content, (yyvsp[0].node).content);
 			strcat((yyval.node).content, "\n");
 		}
-#line 1946 "phase2.tab.c"
+#line 2076 "phase2.tab.c"
     break;
 
   case 36:
-#line 449 "phase2.y"
+#line 588 "phase2.y"
                 {/*replaced with new rules above*/}
-#line 1952 "phase2.tab.c"
+#line 2082 "phase2.tab.c"
     break;
 
   case 37:
-#line 451 "phase2.y"
+#line 590 "phase2.y"
                 {/*replaced with new rules above*/}
-#line 1958 "phase2.tab.c"
+#line 2088 "phase2.tab.c"
     break;
 
   case 38:
-#line 453 "phase2.y"
+#line 592 "phase2.y"
                 {
 			strcpy((yyval.node).content, "continue");
 		}
-#line 1966 "phase2.tab.c"
+#line 2096 "phase2.tab.c"
     break;
 
   case 39:
-#line 457 "phase2.y"
+#line 596 "phase2.y"
                 {
 			strcpy((yyval.node).content, (yyvsp[0].node).content);
 			strcpy((yyval.node).name, (yyvsp[0].node).name);
 		}
-#line 1975 "phase2.tab.c"
+#line 2105 "phase2.tab.c"
     break;
 
   case 40:
-#line 464 "phase2.y"
+#line 603 "phase2.y"
                 {
 			strcpy((yyval.node).content, (yyvsp[-1].node).content);
 		}
-#line 1983 "phase2.tab.c"
+#line 2113 "phase2.tab.c"
     break;
 
   case 41:
-#line 468 "phase2.y"
+#line 607 "phase2.y"
                 {
 			strcpy((yyval.node).content, (yyvsp[-2].node).content);
 		  	//strcat($$, $2);
 		  	strcat((yyval.node).content, (yyvsp[0].node).content);
 		}
-#line 1993 "phase2.tab.c"
+#line 2123 "phase2.tab.c"
     break;
 
   case 42:
-#line 476 "phase2.y"
+#line 615 "phase2.y"
                 {
-			//$$ = $1; 
+		
 			strcpy((yyval.node).content, (yyvsp[0].node).content);
+			strcpy((yyval.node).name, (yyvsp[0].node).name);
+			strcpy((yyval.node).type, (yyvsp[0].node).type);
+			strcpy((yyval.node).tempCode, "");
+			strcpy((yyval.node).val, (yyvsp[0].node).val);
 		}
-#line 2002 "phase2.tab.c"
+#line 2136 "phase2.tab.c"
     break;
 
   case 43:
-#line 481 "phase2.y"
+#line 624 "phase2.y"
                 {     
-  			// char *src1 =  $1;
-  			// char *src2 =  $3;
-  			// char *dest = "__temp__";
-  			// printf("+ %s, %s, %s\n", dest, src1, src2);
-  			// $$ = dest;
+  		
+		
+			string tempIndex = "__temp__" + indexifyTemp();
+			//string tempIndex = $1.name;
+			
+			
+		
+			string name = tempIndex;
+			char * charName = new char [name.length()+1];
+			strcpy(charName, name.c_str());
+			//strcat($$.content, charName); 
 
-			// strcpy($$, "+__temp__ ");
-			// //strcat($$, "__temp__ ");
-			// strcat($$, $1);
-			// strcat($$, ", ");
-			// strcat($$, $3);
-			// strcat($$, "\n");
+			string cheese = ". "+tempIndex+"\n";
+			char * charCheese = new char [cheese.length()+1];
+			strcpy(charCheese, cheese.c_str());
+			//strcat($$.content, charCheese);
 
-			strcpy((yyval.node).content, (yyvsp[0].node).content);
-			strcat((yyval.node).content, (yyvsp[-2].node).content);
-			strcat((yyval.node).content, "\n. __temp__\n");
-			strcat((yyval.node).content, "+ __temp__, ");
-			strcat((yyval.node).content, (yyvsp[-2].node).content);
-			strcat((yyval.node).content, ", ");
+			string beans = "+ "+tempIndex+", ";
+			char * charBeans = new char [beans.length()+1];
+			strcpy(charBeans, beans.c_str());
+			//strcat($$.content, charBeans);
+			
+			strcpy((yyval.node).name, charName );
+			strcpy((yyval.node).val, charName);
+
+			
+			strcpy((yyval.node).content, (yyvsp[-2].node).content);
 			strcat((yyval.node).content, (yyvsp[0].node).content);
+			
+			
+			strcpy((yyval.node).tempCode, charCheese);
+			strcat((yyval.node).tempCode, charBeans);
+			strcat((yyval.node).tempCode, (yyvsp[-2].node).val);
+			strcat((yyval.node).tempCode, ", ");
+			strcat((yyval.node).tempCode, (yyvsp[0].node).name);
+			strcat((yyval.node).tempCode, "\n");
 
+			//cout<<"multex tempcode:"<<endl<<"----"<<$$.tempCode<<"---"<<endl;
+			cout<<"$$name--------"<<(yyval.node).name<<"------"<<endl;
+			cout<<"charname--------"<<charName<<"------"<<endl;
+			cout<<"tempIndex--------"<<tempIndex<<"------"<<endl;
+			cout<<"val--------"<<(yyval.node).val<<"---------"<<endl;
+
+			
 
 		}
-#line 2031 "phase2.tab.c"
+#line 2188 "phase2.tab.c"
     break;
 
   case 44:
-#line 506 "phase2.y"
+#line 672 "phase2.y"
                 {
-  			// char *src1 =  $1;
-  			// char *src2 =  $3;
-  			// char *dest = "__temp__";
-  			// printf("- %s, %s, %s\n", dest, src1, src2);
-  			// $$ = dest;
+  			
+			strcpy((yyval.node).name, "__temp__");
 
-			// strcpy($$, "-__temp__ ");
-			// //strcat($$, "__temp__ ");
-			// strcat($$, $1);
-			// strcat($$, ", ");
-			// strcat($$, $3);
-			// strcat($$, "\n");
-
-			strcpy((yyval.node).content, (yyvsp[0].node).content);
-
-			strcat((yyval.node).content, (yyvsp[-2].node).content);
-			strcat((yyval.node).content, "\n.");
-			strcat((yyval.node).content, "__temp__\n");
-			strcat((yyval.node).content, "+ __temp__, ");
-			strcat((yyval.node).content, (yyvsp[-2].node).content);
-			strcat((yyval.node).content, ", ");
+			
+			strcpy((yyval.node).content, (yyvsp[-2].node).content);
 			strcat((yyval.node).content, (yyvsp[0].node).content);
+			
+			strcpy((yyval.node).tempCode, ". __temp__\n");
+			strcat((yyval.node).tempCode, "- __temp__, ");
+			strcat((yyval.node).tempCode, (yyvsp[-2].node).name);
+			strcat((yyval.node).tempCode, ", ");
+			strcat((yyval.node).tempCode, (yyvsp[0].node).name);
+			strcat((yyval.node).tempCode, "\n");
+
 
 
 		}
-#line 2062 "phase2.tab.c"
+#line 2211 "phase2.tab.c"
     break;
 
   case 45:
-#line 535 "phase2.y"
+#line 693 "phase2.y"
                 { 
 			//$$ = $1;
 			strcpy((yyval.node).content, (yyvsp[0].node).content);
-
+			strcpy((yyval.node).name, (yyvsp[0].node).name);
+			strcpy((yyval.node).val, (yyvsp[0].node).val);
+			strcpy((yyval.node).type, (yyvsp[0].node).type);
+			
 		}
-#line 2072 "phase2.tab.c"
+#line 2224 "phase2.tab.c"
     break;
 
   case 46:
-#line 541 "phase2.y"
+#line 702 "phase2.y"
                 {
 			strcpy((yyval.node).content, (yyvsp[0].node).content);
 			strcat((yyval.node).content, ", ");
@@ -2080,12 +2232,14 @@ yyreduce:
 			strcat((yyval.node).content, "\n. __temp__\n");
 			strcat((yyval.node).content, "* __temp__, ");
 			strcat((yyval.node).content, (yyvsp[-2].node).name);
+
+			
 		}
-#line 2085 "phase2.tab.c"
+#line 2239 "phase2.tab.c"
     break;
 
   case 47:
-#line 550 "phase2.y"
+#line 713 "phase2.y"
                 {
 			strcpy((yyval.node).content, (yyvsp[0].node).content);
 			strcat((yyval.node).content, ", ");
@@ -2093,12 +2247,14 @@ yyreduce:
 			strcat((yyval.node).content, "\n. __temp__\n");
 			strcat((yyval.node).content, "/__temp__, ");
 			strcat((yyval.node).content, (yyvsp[-2].node).name);
+
+			
 		}
-#line 2098 "phase2.tab.c"
+#line 2254 "phase2.tab.c"
     break;
 
   case 48:
-#line 559 "phase2.y"
+#line 724 "phase2.y"
                 {
 			strcpy((yyval.node).content, (yyvsp[0].node).content);
 			strcat((yyval.node).content, ", ");
@@ -2107,34 +2263,67 @@ yyreduce:
 			strcat((yyval.node).content, "%_tmp, ");
 			strcat((yyval.node).content, (yyvsp[-2].node).name);
 		}
-#line 2111 "phase2.tab.c"
+#line 2267 "phase2.tab.c"
     break;
 
   case 49:
-#line 570 "phase2.y"
+#line 735 "phase2.y"
                 { 
-			strcpy((yyval.node).content, (yyvsp[0].node).content);			
-			strcpy((yyval.node).name, (yyvsp[0].node).name);
-			strcpy((yyval.node).type, (yyvsp[0].node).type);
 
-			//$$ = $1;
-			if((yyvsp[0].node).type == "ident"){
-				strcpy((yyval.node).content, ". __temp__\n"); 
-				strcat((yyval.node).content, "=__temp__, ");
-				strcat((yyval.node).content, (yyvsp[0].node).content);			
-			}
-			else if((yyvsp[0].node).type == "array"){
-				strcpy((yyval.node).content, "=[], ");
-				strcat((yyval.node).content, (yyvsp[0].node).name);
+			string tempIndex = "__temp__" + indexifyTemp();
+
+				//cout<<"term temp: --"<<tempIndex<<"--"<<endl;
+
+
+			string name = tempIndex;
+			char * charName = new char [name.length()+1];
+			strcpy(charName, name.c_str());
+
+			string cheese = ". "+tempIndex+"\n";
+			char * charCheese = new char [cheese.length()+1];
+			strcpy(charCheese, cheese.c_str());
+	
+
+			string beans = "= "+tempIndex+", ";
+			char * charBeans = new char [beans.length()+1];
+			strcpy(charBeans, beans.c_str());
+
+			
+			strcpy((yyval.node).type, (yyvsp[0].node).type);
+				strcpy((yyval.node).name, charName);
+				strcpy((yyval.node).val, (yyvsp[0].node).val);
+				
+
+				strcpy((yyval.node).content, charCheese); 
+				strcat((yyval.node).content, charBeans);
+				strcat((yyval.node).content, (yyvsp[0].node).name);	
+
+				//cout<<"charName, $$name: --"<<charName<<"--"<<$$.name<<"--"<<tempIndex<<endl;	
+			
+			// if($1.type == "variable"){
+				
+			// 	strcpy($$.type, $1.type);
+			// 	strcpy($$.name, charName);
+				
+
+			// 	strcpy($$.content, charCheese); 
+			// 	strcat($$.content, charBeans);
+			// 	strcat($$.content, $1.name);	
+
+			// 	cout<<"charName, $$name: --"<<charName<<"--"<<$$.name<<"--"<<tempIndex<<endl;	
+			// }
+			// else if($1.type == "array"){
+			// 	strcpy($$.content, "=[], ");
+			// 	strcat($$.content, $1.name);
 							
-			}
+			// }
 
 		}
-#line 2134 "phase2.tab.c"
+#line 2323 "phase2.tab.c"
     break;
 
   case 50:
-#line 589 "phase2.y"
+#line 787 "phase2.y"
                 { 
 			//$$ = "SLDKFJDSLKJ";
 			if((yyvsp[0].node).type == "ident"){
@@ -2148,21 +2337,24 @@ yyreduce:
 							
 			}
 		}
-#line 2152 "phase2.tab.c"
+#line 2341 "phase2.tab.c"
     break;
 
   case 51:
-#line 603 "phase2.y"
+#line 801 "phase2.y"
                 { 
+			
 			strcpy((yyval.node).content, (yyvsp[0].leaf));
-			strcpy((yyval.node).type, (yyvsp[0].leaf));
 			strcpy((yyval.node).name, (yyvsp[0].leaf));
+			strcpy((yyval.node).type, "number");
+			strcpy((yyval.node).val, (yyvsp[0].leaf));
+			
 		}
-#line 2162 "phase2.tab.c"
+#line 2354 "phase2.tab.c"
     break;
 
   case 52:
-#line 609 "phase2.y"
+#line 810 "phase2.y"
                 { 
 			strcpy((yyval.node).content, "-");
 			strcat((yyval.node).content, (yyvsp[0].leaf));
@@ -2170,30 +2362,30 @@ yyreduce:
 			strcpy((yyval.node).type, (yyvsp[0].leaf)); 
 			strcpy((yyval.node).name, (yyvsp[0].leaf));
 		}
-#line 2174 "phase2.tab.c"
+#line 2366 "phase2.tab.c"
     break;
 
   case 53:
-#line 617 "phase2.y"
+#line 818 "phase2.y"
                 { 
 			//$$ = "SLDKFJDSLKJ";
 			strcpy((yyval.node).content, (yyvsp[-1].node).name);
 			
 
 		}
-#line 2185 "phase2.tab.c"
+#line 2377 "phase2.tab.c"
     break;
 
   case 54:
-#line 624 "phase2.y"
+#line 825 "phase2.y"
                 { 
 			strcpy((yyval.node).content, (yyvsp[-1].node).name); 
 		}
-#line 2193 "phase2.tab.c"
+#line 2385 "phase2.tab.c"
     break;
 
   case 55:
-#line 628 "phase2.y"
+#line 829 "phase2.y"
                 { 
 			//char *token = identToken;
      		//printf("___%s___\n", token);
@@ -2202,7 +2394,7 @@ yyreduce:
 			//printf("_content:__%s___\n", $1.content);
 
 
-			if (strcmp((yyvsp[-3].node).content, func) == 0) { // match!
+			if (strcmp((yyvsp[-3].node).content, sub) == 0) { // match!
 				funcBool = 1;	
 			}
 
@@ -2238,46 +2430,49 @@ yyreduce:
 
 			strcpy((yyval.node).content, (yyvsp[-1].node).name); 
 		}
-#line 2242 "phase2.tab.c"
+#line 2434 "phase2.tab.c"
     break;
 
   case 56:
-#line 675 "phase2.y"
+#line 876 "phase2.y"
                 {
 			strcpy((yyval.node).content, ""); 
 		}
-#line 2250 "phase2.tab.c"
+#line 2442 "phase2.tab.c"
     break;
 
   case 57:
-#line 679 "phase2.y"
+#line 880 "phase2.y"
                 {
 			strcpy((yyval.node).content, (yyvsp[0].node).content);
 		}
-#line 2258 "phase2.tab.c"
+#line 2450 "phase2.tab.c"
     break;
 
   case 58:
-#line 683 "phase2.y"
+#line 884 "phase2.y"
                 {
 			strcpy((yyval.node).content, (yyvsp[-2].node).content);
 			strcat((yyval.node).content, "\n");
 			strcat((yyval.node).content, (yyvsp[0].node).content);
 		}
-#line 2268 "phase2.tab.c"
+#line 2460 "phase2.tab.c"
     break;
 
   case 59:
-#line 696 "phase2.y"
+#line 897 "phase2.y"
                 {
+			
 			strcpy((yyval.node).content, (yyvsp[0].node).content);
+			strcpy((yyval.node).tempCode, (yyvsp[0].node).tempCode);
 			strcpy((yyval.node).name, (yyvsp[0].node).name );
+			strcpy((yyval.node).val, (yyvsp[0].node).val);
 		}
-#line 2277 "phase2.tab.c"
+#line 2472 "phase2.tab.c"
     break;
 
   case 60:
-#line 701 "phase2.y"
+#line 905 "phase2.y"
                 {
 			strcpy((yyval.node).content, (yyvsp[-2].node).content);
 			strcat((yyval.node).content, "\n");
@@ -2288,20 +2483,22 @@ yyreduce:
 			strcat((yyval.node).content, ", ");
 			strcat((yyval.node).content, (yyvsp[0].node).content);
 		}
-#line 2292 "phase2.tab.c"
+#line 2487 "phase2.tab.c"
     break;
 
   case 61:
-#line 714 "phase2.y"
+#line 918 "phase2.y"
                 {
 			strcpy((yyval.node).content, (yyvsp[0].node).content );
+			strcpy((yyval.node).tempCode, (yyvsp[0].node).tempCode);
 			strcpy((yyval.node).name, (yyvsp[0].node).name );
+			strcpy((yyval.node).val, (yyvsp[0].node).val);
 		}
-#line 2301 "phase2.tab.c"
+#line 2498 "phase2.tab.c"
     break;
 
   case 62:
-#line 719 "phase2.y"
+#line 925 "phase2.y"
                 {
 			strcpy((yyval.node).content, (yyvsp[-2].node).content);
 			strcat((yyval.node).content, "\n");
@@ -2312,105 +2509,143 @@ yyreduce:
 			strcat((yyval.node).content, ", ");
 			strcat((yyval.node).content, (yyvsp[0].node).content);	
 		}
-#line 2316 "phase2.tab.c"
+#line 2513 "phase2.tab.c"
     break;
 
   case 63:
-#line 732 "phase2.y"
-                {}
-#line 2322 "phase2.tab.c"
+#line 938 "phase2.y"
+                {
+			//string tempIndex = "__temp__" + indexifyTemp();
+			string tempIndex = (yyvsp[-2].node).name;
+
+			//cout<<"rel_exp temp index: ---"<<tempIndex<<"---"<<endl;
+
+			string name = tempIndex;
+			char * charName = new char [name.length()+1];
+			strcpy(charName, name.c_str());
+
+			string cheese = ". "+tempIndex+"\n";
+			char * charCheese = new char [cheese.length()+1];
+			strcpy(charCheese, cheese.c_str());
+
+			string beans = " "+tempIndex+", ";
+			char * charBeans = new char [beans.length()+1];
+			strcpy(charBeans, beans.c_str());
+
+
+			strcpy((yyval.node).name, charName);
+			strcpy((yyval.node).content, (yyvsp[-2].node).content);
+			strcpy((yyval.node).val, (yyvsp[-2].node).val);
+
+			strcpy((yyval.node).tempCode, charCheese);
+			strcat((yyval.node).tempCode, (yyvsp[-1].leaf));			
+			strcat((yyval.node).tempCode, charBeans);
+			strcat((yyval.node).tempCode, (yyvsp[-2].node).val);	
+			strcat((yyval.node).tempCode, " , ");
+			strcat((yyval.node).tempCode, (yyvsp[0].node).val);	
+			strcat((yyval.node).tempCode, "\n");
+
+
+		}
+#line 2551 "phase2.tab.c"
     break;
 
   case 64:
-#line 734 "phase2.y"
-                {}
-#line 2328 "phase2.tab.c"
+#line 972 "phase2.y"
+                {
+
+
+		}
+#line 2560 "phase2.tab.c"
     break;
 
   case 65:
-#line 736 "phase2.y"
+#line 977 "phase2.y"
                 {}
-#line 2334 "phase2.tab.c"
+#line 2566 "phase2.tab.c"
     break;
 
   case 66:
-#line 738 "phase2.y"
+#line 979 "phase2.y"
                 {}
-#line 2340 "phase2.tab.c"
+#line 2572 "phase2.tab.c"
     break;
 
   case 67:
-#line 740 "phase2.y"
+#line 981 "phase2.y"
                 {}
-#line 2346 "phase2.tab.c"
+#line 2578 "phase2.tab.c"
     break;
 
   case 68:
-#line 742 "phase2.y"
+#line 983 "phase2.y"
                 {}
-#line 2352 "phase2.tab.c"
+#line 2584 "phase2.tab.c"
     break;
 
   case 69:
-#line 744 "phase2.y"
+#line 985 "phase2.y"
                 {}
-#line 2358 "phase2.tab.c"
+#line 2590 "phase2.tab.c"
     break;
 
   case 70:
-#line 746 "phase2.y"
+#line 987 "phase2.y"
                 {}
-#line 2364 "phase2.tab.c"
+#line 2596 "phase2.tab.c"
     break;
 
   case 71:
-#line 750 "phase2.y"
+#line 991 "phase2.y"
                 {strcpy((yyval.leaf), "==");	}
-#line 2370 "phase2.tab.c"
+#line 2602 "phase2.tab.c"
     break;
 
   case 72:
-#line 752 "phase2.y"
+#line 993 "phase2.y"
                 {strcpy((yyval.leaf), "!=");	}
-#line 2376 "phase2.tab.c"
+#line 2608 "phase2.tab.c"
     break;
 
   case 73:
-#line 754 "phase2.y"
+#line 995 "phase2.y"
                 {strcpy((yyval.leaf), "<");	}
-#line 2382 "phase2.tab.c"
+#line 2614 "phase2.tab.c"
     break;
 
   case 74:
-#line 756 "phase2.y"
+#line 997 "phase2.y"
                 {strcpy((yyval.leaf), ">");	}
-#line 2388 "phase2.tab.c"
+#line 2620 "phase2.tab.c"
     break;
 
   case 75:
-#line 758 "phase2.y"
+#line 999 "phase2.y"
                 {strcpy((yyval.leaf), "<=");	}
-#line 2394 "phase2.tab.c"
+#line 2626 "phase2.tab.c"
     break;
 
   case 76:
-#line 760 "phase2.y"
+#line 1001 "phase2.y"
                 {strcpy((yyval.leaf), ">=");	}
-#line 2400 "phase2.tab.c"
+#line 2632 "phase2.tab.c"
     break;
 
   case 77:
-#line 763 "phase2.y"
+#line 1004 "phase2.y"
         {	 
+		//strcpy($$.content, "_");
     	strcpy((yyval.node).content, (yyvsp[0].node).content);
-		strcpy((yyval.node).type, "ident");
+		strcpy((yyval.node).val, (yyvsp[0].node).content);
+		strcpy((yyval.node).name, (yyvsp[0].node).name);
+		strcpy((yyval.node).type, "variable");
 
 	}
-#line 2410 "phase2.tab.c"
+#line 2645 "phase2.tab.c"
     break;
 
   case 78:
-#line 770 "phase2.y"
+#line 1014 "phase2.y"
         { 
 		//$$ = 0;  /*garbage */
 
@@ -2424,20 +2659,20 @@ yyreduce:
 		strcpy((yyval.node).name, (yyvsp[-3].node).name);
 		strcpy((yyval.node).type, "array");
 	}
-#line 2428 "phase2.tab.c"
+#line 2663 "phase2.tab.c"
     break;
 
   case 79:
-#line 785 "phase2.y"
+#line 1029 "phase2.y"
                 {
 			strcpy((yyval.node).content, (yyvsp[0].node).content);
 			strcpy((yyval.node).type, (yyvsp[0].node).type);
 		}
-#line 2437 "phase2.tab.c"
+#line 2672 "phase2.tab.c"
     break;
 
   case 80:
-#line 790 "phase2.y"
+#line 1034 "phase2.y"
                 {
 			//TODO: output error if var and vars are of different type
 			//TODO: find the "leaves" and give them "signitures", a thing that is composed of the leaf will inherit the signature as its first token
@@ -2445,11 +2680,11 @@ yyreduce:
 			strcat((yyval.node).content, ", ");
 			strcat((yyval.node).content, (yyvsp[0].node).content);
 		}
-#line 2449 "phase2.tab.c"
+#line 2684 "phase2.tab.c"
     break;
 
 
-#line 2453 "phase2.tab.c"
+#line 2688 "phase2.tab.c"
 
       default: break;
     }
@@ -2681,7 +2916,29 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 799 "phase2.y"
+#line 1043 "phase2.y"
+
+
+string indexifyTemp() {
+  static int index1 = 0;
+  return to_string(index1++);
+}
+string indexifyElse(void){
+	static int index2 = 0;
+	return to_string(index2++);
+}
+string indexifyEndif(void){
+	static int index3 = 0;
+	return to_string(index3++);
+}
+string indexifyLoopB(void){
+	static int index4 = 0;
+	return to_string(index4++);
+}
+string indexifyLoopE(void){
+	static int index5 = 0;
+	return to_string(index5++);
+}
 
 
 int main(int argc, char **argv)

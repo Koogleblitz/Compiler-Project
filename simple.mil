@@ -1,9 +1,24 @@
+
 func main
 . a
 . b
 . c
+. n
+. i
+. j
+. k
+. [] _t, _u, _v, _20
 = a, 100
 = b, 50
-+ _temp, a, b
-= c, _temp
-endfunc
+. __temp__
++ __temp__, a, b
+= c, __temp__
+= t, i
+= k, t
+= t, t
+= t, k
+= k, 0
+= n, 20
+.> c
+
+endfunc 

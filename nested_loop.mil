@@ -1,0 +1,36 @@
+$$name--------__temp__3------
+charname--------__temp__3------
+tempIndex--------__temp__3------
+val--------__temp__3---------
+$$name--------__temp__5------
+charname--------__temp__5------
+tempIndex--------__temp__5------
+val--------__temp__5---------
+
+func main
+. i
+. j
+= i, 0
+: loop_begin1
+. __temp__0
+< __temp__0, i , 2
+! __temp__0, __temp__0
+?:= loop_end1, __temp__0
+= j, 1
+: loop_begin0
+. __temp__1
+<= __temp__1, j , 3
+! __temp__1, __temp__1
+?:= loop_end0, __temp__1
+.> j
+. __temp__3
++ __temp__3, j, 1
+= j, __temp__3
+:= loop_begin0
+: loop_end0
+. __temp__5
++ __temp__5, i, 1
+= i, __temp__5
+:= loop_begin1
+: loop_end1
+endfunc

@@ -3,6 +3,8 @@ function add;
 beginparams
 	a : integer;
 	b : integer;
+  c : integer;
+	d : integer;
 endparams
 beginlocals
 endlocals
