@@ -24,3 +24,4 @@ beginbody
   write c;  ## This should print out 100
 
 endbody
+

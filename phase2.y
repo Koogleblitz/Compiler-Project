@@ -55,6 +55,7 @@
    int mainFunc = 0;
    int funcBool = 0;
    int zeroArrbool = 0;
+   int contFlag = 0;
    char *mainStr = "main";
    char *sub = "sub";
    char *add = "add";
@@ -450,11 +451,33 @@ statement:
 	| IF bool_exp THEN statements ENDIF
 		{
 			
-			strcpy($$.content, $2.tempCode);
-			strcat($$.content, "! __temp__0, __temp__0\n?:= else0, __temp__0\n");
-			strcat($$.content, $4.content);
-			strcat($$.content, "\n:= endif0:");
+			//string tempIndex = "__temp__" + indexifyTemp();
+			string tempIndex = $2.name;
+			string elseIndex = "else" + indexifyElse();
+			string endifIndex = !(contFlag)? ("endif" + indexifyEndif()) : ("loop_begin" + indexifyLoopE());
+			
 
+			strcpy($$.content, $2.tempCode);
+
+
+			string cheese = "! " + tempIndex + ", " + tempIndex + "\n" + "?:= " + elseIndex	+ ", " + tempIndex + "\n";
+			char * charCheese = new char [cheese.length()+1];
+			strcpy(charCheese, cheese.c_str());
+			strcat($$.content, charCheese);
+
+			strcat($$.content, $4.content);
+
+			
+			string beans = ":= "+ endifIndex + "\n: " +elseIndex+ "\n";
+			char * charBeans = new char [beans.length()+1];
+			strcpy(charBeans, beans.c_str());
+			strcat($$.content, charBeans);
+
+
+			string theory = ": "+endifIndex+"\n";
+			char * charTheory = new char [theory.length()+1];
+			strcpy(charTheory, theory.c_str());
+			strcat($$.content, charTheory);
 			
 
 
@@ -465,7 +488,7 @@ statement:
 			//string tempIndex = "__temp__" + indexifyTemp();
 			string tempIndex = $2.name;
 			string elseIndex = "else" + indexifyElse();
-			string endifIndex = "endif" + indexifyEndif();
+			string endifIndex = !(contFlag)? ("endif" + indexifyEndif()) : ("loop_begin" + indexifyLoopE());
 			
 
 			strcpy($$.content, $2.tempCode);
@@ -590,7 +613,8 @@ statement:
 		{/*replaced with new rules above*/}
 	| CONTINUE
 		{
-			strcpy($$.content, "continue");
+			strcpy($$.content, "");
+			contFlag = 1;
 		}
 	| RETURN expression
 		{
@@ -622,13 +646,10 @@ expression:
 		}
 	| multiplicative_expression ADD expression
 		{     
-  		
 		
 			string tempIndex = "__temp__" + indexifyTemp();
 			//string tempIndex = $1.name;
 			
-			
-		
 			string name = tempIndex;
 			char * charName = new char [name.length()+1];
 			strcpy(charName, name.c_str());
@@ -660,10 +681,10 @@ expression:
 			strcat($$.tempCode, "\n");
 
 			//cout<<"multex tempcode:"<<endl<<"----"<<$$.tempCode<<"---"<<endl;
-			cout<<"$$name--------"<<$$.name<<"------"<<endl;
-			cout<<"charname--------"<<charName<<"------"<<endl;
-			cout<<"tempIndex--------"<<tempIndex<<"------"<<endl;
-			cout<<"val--------"<<$$.val<<"---------"<<endl;
+			// cout<<"$$name--------"<<$$.name<<"------"<<endl;
+			// cout<<"charname--------"<<charName<<"------"<<endl;
+			// cout<<"tempIndex--------"<<tempIndex<<"------"<<endl;
+			// cout<<"val--------"<<$$.val<<"---------"<<endl;
 
 			
 
@@ -1042,7 +1063,7 @@ vars:
 
 %%
 
-string indexifyTemp() {
+string indexifyTemp(void) {
   static int index1 = 0;
   return to_string(index1++);
 }
