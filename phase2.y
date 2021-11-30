@@ -41,8 +41,6 @@
    
    char *identToken;
    char *identToken2;
-   //static int index = 0;
-   //char tempNum[10] = "0123456789";
    int label = 1;
    int numberToken;
    int productionID = 0;
@@ -52,10 +50,12 @@
    int  count_names = 0;
 
 
-   int mainFunc = 0;
-   int funcBool = 0;
-   int zeroArrbool = 0;
-   int contFlag = 0;
+   unsigned char mainFunc = 0;
+   unsigned char funcBool = 0;
+   unsigned char zeroArrbool = 0;
+   int contIndex = 0;
+   unsigned char contFlag = 0;
+   string contStr = "continue";
    char *mainStr = "main";
    char *sub = "sub";
    char *add = "add";
@@ -89,6 +89,7 @@
 	char name[10];
 	char type[10];
 	char val[15];
+	char control[15];
   } node;
 
   struct terminal 
@@ -168,9 +169,16 @@ prog_start:
 				yyerror("ERROR: assigning number to zero-sized array");
 				yyerror("ERROR: assigning number to zero-sized array");
       		}
+			else if (contIndex > 0) {
+        		yyerror("ERROR: Continue statement out of bounds");
+				yyerror("ERROR: Continue statement out of bounds");
+				yyerror("ERROR: Continue statement out of bounds");
+				
+      		}
 			else{
 				printf("%s",$1);	
 			}
+			
 			
 		};
 
@@ -214,6 +222,7 @@ end_body:
 	{
    		//printf("endfunc\n");
    		strcpy($$.content, "endfunc");
+		
 	};
 
 paramlocal:
@@ -243,7 +252,11 @@ paramlocal:
 	| BEGIN_BODY
 		{
 			strcpy($$.content, "");	
+			
 		};
+
+
+
 
 function_ident: 
 	FUNCTION ident 
@@ -278,59 +291,29 @@ ident:
 			if ($1 == "main") {mainFunc = 1;	}
 			strcpy($$.content, $1);
 			strcpy($$.name, $1);
-			//printf("%s",$$.content);
 		};
-
-
-
-
-
-
-
-
-
-
-
 
 
 
 declarations: 
 	/*epsilon*/
 		{
-			/*These recursive rules are where the pneumonic errors are from, more specifically they come from epsilon where no code is there for the action*/
 			strcpy($$.content, ""); 
 		}
 	| declaration SEMICOLON declarations 
 		{
-			
-
-
 			strcpy($$.content, $1.content);
-			//strcat($$.content, ", ");
-			//strcat($$.content, "\n");
 		  	strcat($$.content, $3.content);
-		  	
 
-
-
-			
-			//printf("___%s___\n", $1.content);  
-			//printf("ee__%s__bb\n", $1.content);  
 		};
 
 declaration: 
 	idents COLON INTEGER
 		{
 		  	strcpy($$.content, $1.content);
-			//printf("IDlist identified");
 		}
 	| IDENT COLON INTEGER
 		{	
-
-    	//    char *token = $1;
-    	//    printf(". %s\n", token);
-
-
 
 			strcpy($$.content, ". ");
 			strcat($$.content, $1);
@@ -445,6 +428,8 @@ statement:
 
 		  //cout<<"val:--"<<$3.val<<endl<<"--name:--"<<$3.name<<endl;
 
+		  strcpy($$.type, "assn");
+
 		  
 	}
 	
@@ -480,7 +465,8 @@ statement:
 			strcat($$.content, charTheory);
 			
 
-
+			//cout<<"stmt in if branch:------"<<$4.type<<"------"<<endl;
+			strcpy($$.type, $4.type);
 
 		}
 	| IF bool_exp THEN statements ELSE statements ENDIF
@@ -519,6 +505,8 @@ statement:
 		}
 	| WHILE bool_exp BEGINLOOP statements ENDLOOP
 		{
+			
+
 			//string tempIndex = "__temp__" + indexifyTemp();
 			string tempIndex = $2.name;
 			string loopBegIndex = "loop_begin" + indexifyLoopB();
@@ -550,9 +538,10 @@ statement:
 			strcpy(charBeans, beans.c_str());
 			strcat($$.content, charBeans);
 
-
 			
+			if($4.type == contStr){ contIndex--;	}	
 			
+		
 
 		}
 	| DO BEGINLOOP statements ENDLOOP WHILE bool_exp
@@ -614,7 +603,15 @@ statement:
 	| CONTINUE
 		{
 			strcpy($$.content, "");
+			strcpy($$.type, "continue");
+			strcpy($$.control, "continue");
 			contFlag = 1;
+			contIndex++;
+
+			
+			  
+			
+			
 		}
 	| RETURN expression
 		{
@@ -626,12 +623,32 @@ statements:
 	statement SEMICOLON /* epsilon */
 		{
 			strcpy($$.content, $1.content);
+			strcpy($$.type, $1.type);
+			// if(($1.type == contStr) ){ 
+			// 	strcpy($$.type, "continue");	
+				
+			// }
+			
+
+
+			strcpy($$.control, $1.control);
+
+
 		}
 	| statement SEMICOLON statements
 		{
+			
+
+			if(($1.type == contStr) || ($3.type == contStr)){ 
+				strcpy($$.type, "continue");	
+			}	
+
 			strcpy($$.content, $1.content);
-		  	//strcat($$, $2);
 		  	strcat($$.content, $3.content);
+			  
+
+			strcpy($$.control, $1.control);
+	
 		};
 
 expression: 

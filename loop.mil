@@ -14,3 +14,4 @@ func main
 := loop_begin0
 : loop_end0
 endfunc
+conts:--0

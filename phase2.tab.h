@@ -121,6 +121,7 @@ union YYSTYPE
 	char name[10];
 	char type[10];
 	char val[15];
+	char control[15];
   } node;
 
   struct terminal 
@@ -132,7 +133,7 @@ union YYSTYPE
 
   
 
-#line 136 "phase2.tab.h"
+#line 137 "phase2.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
