@@ -16,4 +16,3 @@ func main
 : endif0
 .> c
 endfunc
-conts:--0

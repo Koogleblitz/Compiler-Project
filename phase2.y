@@ -46,10 +46,12 @@
    int productionID = 0;
 
    char list_of_function_names[100][100];
+   vector<string> varList;
    char* funcList[100];
    int  count_names = 0;
+   int varIndex = 0;
 
-
+   unsigned char badVar = 0;
    unsigned char mainFunc = 0;
    unsigned char funcBool = 0;
    unsigned char zeroArrbool = 0;
@@ -173,6 +175,12 @@ prog_start:
         		yyerror("ERROR: Continue statement out of bounds");
 				yyerror("ERROR: Continue statement out of bounds");
 				yyerror("ERROR: Continue statement out of bounds");
+				
+      		}
+			  else if (badVar) {
+        		yyerror("ERROR: Use of undeclared variable");
+				yyerror("ERROR: Use of undeclared variable");
+				yyerror("ERROR: Use of undeclared variable");
 				
       		}
 			else{
@@ -311,6 +319,10 @@ declaration:
 	idents COLON INTEGER
 		{
 		  	strcpy($$.content, $1.content);
+
+			// varList.push_back(string($1.content));  
+			// varList.push_back("testString");
+			// cout<<"--idents--"<<endl;
 		}
 	| IDENT COLON INTEGER
 		{	
@@ -320,6 +332,18 @@ declaration:
 			strcat($$.content, "\n");
 
 			strcpy($$.name, $1);
+
+			// string newVar = string($1);
+			// strcpy(varList[varIndex], newVar);
+     		// varIndex++;
+
+			varList.push_back(string($1));
+			
+
+			// for (int i = 0; i < varList.size(); i++){
+			// 	cout << i<<": "<<varList[i] << "\n";
+			// }
+        		
 
 		}
 	| IDENT COMMA IDENT COLON INTEGER
@@ -411,12 +435,13 @@ statement:
 	var ASSIGN expression
 	{
 		
+		strcpy($$.type, "assn");
+
 		strcpy($$.content, $3.tempCode);
 		  strcat($$.content, "= ");
 		  strcat($$.content, $1.name);
 		  strcat($$.content, ", ");
 
-		  //strcat($$.content, $3.name);
 		  if($3.type != "number"){
 			strcat($$.content, $3.val);
 		  }
@@ -424,12 +449,17 @@ statement:
 			strcat($$.content, $3.name);
 		  }
 
-		  strcat($$.content, "\n");
-
-		  //cout<<"val:--"<<$3.val<<endl<<"--name:--"<<$3.name<<endl;
-
-		  strcpy($$.type, "assn");
-
+		  strcat($$.content, "\n");	
+		
+		
+		int varCheck = 0;
+		for (unsigned i = 0; i < varList.size(); ++i) {
+    		if (varList.at(i) != string($1.name)) { varCheck++;	}
+    	}
+		if( varCheck == varList.size()){
+			badVar = 1;
+		}
+		
 		  
 	}
 	
@@ -697,15 +727,9 @@ expression:
 			strcat($$.tempCode, $3.name);
 			strcat($$.tempCode, "\n");
 
-			//cout<<"multex tempcode:"<<endl<<"----"<<$$.tempCode<<"---"<<endl;
-			// cout<<"$$name--------"<<$$.name<<"------"<<endl;
-			// cout<<"charname--------"<<charName<<"------"<<endl;
-			// cout<<"tempIndex--------"<<tempIndex<<"------"<<endl;
-			// cout<<"val--------"<<$$.val<<"---------"<<endl;
-
-			
 
 		}
+		
 	| multiplicative_expression SUB expression
 		{
   			
@@ -729,7 +753,7 @@ expression:
 multiplicative_expression: 
 	term
 		{ 
-			//$$ = $1;
+
 			strcpy($$.content, $1.content);
 			strcpy($$.name, $1.name);
 			strcpy($$.val, $1.val);
@@ -773,8 +797,6 @@ term:
 		{ 
 
 			string tempIndex = "__temp__" + indexifyTemp();
-
-				//cout<<"term temp: --"<<tempIndex<<"--"<<endl;
 
 
 			string name = tempIndex;
@@ -823,7 +845,7 @@ term:
 		}
 	| SUB var
 		{ 
-			//$$ = "SLDKFJDSLKJ";
+
 			if($2.type == "ident"){
 				strcpy($$.content, ". __temp__\n"); 
 				strcat($$.content, "=__temp__, ");
@@ -854,7 +876,7 @@ term:
 		}
 	| L_PAREN expression R_PAREN
 		{ 
-			//$$ = "SLDKFJDSLKJ";
+
 			strcpy($$.content, $2.name);
 			
 

@@ -26,4 +26,3 @@ func main
 := loop_begin1
 : loop_end1
 endfunc
-conts:--0
