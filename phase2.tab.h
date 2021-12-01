@@ -105,9 +105,8 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 79 "phase2.y"
+#line 81 "phase2.y"
 
-  //int int_val;
   char* op_val;
   char *leaf;
   char container[30];
@@ -133,7 +132,7 @@ union YYSTYPE
 
   
 
-#line 137 "phase2.tab.h"
+#line 136 "phase2.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

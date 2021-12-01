@@ -47,11 +47,13 @@
 
    char list_of_function_names[100][100];
    vector<string> varList;
+   vector<string> arrList;
    char* funcList[100];
    int  count_names = 0;
    int varIndex = 0;
 
    unsigned char badVar = 0;
+   unsigned char badArr = 0;
    unsigned char mainFunc = 0;
    unsigned char funcBool = 0;
    unsigned char zeroArrbool = 0;
@@ -77,7 +79,6 @@
 
 
 %union {
-  //int int_val;
   char* op_val;
   char *leaf;
   char container[30];
@@ -110,9 +111,7 @@
 %type <root> functions function function_ident
 %type <node> declaration declarations statement statements var term ident idents expressions comma_sep_expressions expression multiplicative_expression 
 %type <node> vars bool_exp relation_exp relation_and_exp paramlocal end_body 
-//%type <container> end_body 
 %type <leaf> NUMBER IDENT comp
-//%type <container> locals
 
 %token BEGIN_PARAMS END_PARAMS BEGIN_LOCALS END_LOCALS BEGIN_BODY END_BODY
 %token FUNCTION MAIN
@@ -130,26 +129,6 @@
 %token SEMICOLON COLON COMMA L_PAREN R_PAREN ASSIGN
 %token NUMBER 
 %token IDENT
-
-//%type <leaf> ident 
-//%type <op_val> var
-//%type <op_val> ident
-//%type <op_val> expression
-//%type <op_val> multiplicative_expression
-//%type <op_val> term
-// %token FUNCTION RETURN MAIN
-// %token L_SQUARE_BRACKET
-// %token R_SQUARE_BRACKET
-// %token INTEGER ARRAY OF
-// %token IF THEN ENDIF ELSE
-// %token WHILE DO BEGINLOOP ENDLOOP  CONTINUE
-// %token READ WRITE
-// %token AND OR NOT TRUE FALSE
-// %token SUB ADD MULT DIV MOD
-// %token EQ NEQ LT GT LTE GTE
-// %token SEMICOLON COLON COMMA L_PAREN R_PAREN ASSIGN
-// %token <op_val> NUMBER 
-// %token <op_val> IDENT
 
 %%
 
@@ -177,11 +156,17 @@ prog_start:
 				yyerror("ERROR: Continue statement out of bounds");
 				
       		}
-			  else if (badVar) {
+			else if (badArr) {
+				/*var from assn statement not in arrList*/
+        		yyerror("ERROR: Wrong type - Cant use an array as a variable");
+				yyerror("ERROR: Wrong type - Cant use an array as a variable");
+				yyerror("ERROR: Wrong type - Cant use an array as a variable");
+      		}
+			else if (badVar) {
         		yyerror("ERROR: Use of undeclared variable");
 				yyerror("ERROR: Use of undeclared variable");
 				yyerror("ERROR: Use of undeclared variable");
-				
+				cout<<"badvar----"<<badVar<<"badArr-------"<<badArr<<endl;
       		}
 			else{
 				printf("%s",$1);	
@@ -384,6 +369,10 @@ declaration:
 				zeroArrbool = 1;	
 			
 			}		
+
+			arrList.push_back(string($1));
+			strcpy($$.type, "array");
+			
 		}
 	| IDENT COMMA IDENT COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER
 		{
@@ -399,6 +388,7 @@ declaration:
 			if (strcmp($7, zero) == 0) { 
 				zeroArrbool = 1;	
 			}		
+			
 		}
 	| IDENT COMMA IDENT COMMA IDENT COLON ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET OF INTEGER
 		{
@@ -453,12 +443,30 @@ statement:
 		
 		
 		int varCheck = 0;
+		int arrCheck = 0;
+
+
 		for (unsigned i = 0; i < varList.size(); ++i) {
     		if (varList.at(i) != string($1.name)) { varCheck++;	}
     	}
 		if( varCheck == varList.size()){
 			badVar = 1;
 		}
+
+
+		for (unsigned i = 0; i < arrList.size(); ++i) {
+    		if (arrList.at(i) != string($1.name)) { arrCheck++;	}
+    	}
+		if( arrCheck != arrList.size()){
+			badArr = 1;
+		}
+		// else{
+		// 	badVar = (badVar)? 0 : 1;
+		// }
+
+		
+
+	
 		
 		  
 	}
@@ -1072,9 +1080,7 @@ var:  ident
 
 | ident L_SQUARE_BRACKET expression R_SQUARE_BRACKET
 	{ 
-		//$$ = 0;  /*garbage */
-
-		
+	
 
 		strcpy($$.content, ".[] ");
 		strcat($$.content, $1.name);
@@ -1083,6 +1089,8 @@ var:  ident
 
 		strcpy($$.name, $1.name);
 		strcpy($$.type, "array");
+
+		
 	};
 vars:
 	var
@@ -1092,8 +1100,7 @@ vars:
 		}
 	| var COMMA vars
 		{
-			//TODO: output error if var and vars are of different type
-			//TODO: find the "leaves" and give them "signitures", a thing that is composed of the leaf will inherit the signature as its first token
+			
 			strcpy($$.content, $1.content);
 			strcat($$.content, ", ");
 			strcat($$.content, $3.content);
